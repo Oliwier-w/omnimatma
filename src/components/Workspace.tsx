@@ -9,6 +9,7 @@ import {
   Check,
   ChevronRight,
   Command,
+  Dumbbell,
   Flame,
   GraduationCap,
   Home,
@@ -44,6 +45,7 @@ import InfinitePractice from "./InfinitePractice";
 import Visualizer from "./Visualizer";
 import Tools from "./Tools";
 import SkillTree from "./SkillTree";
+import TasksCenter from "./TasksCenter";
 import { isReviewDue } from "@/lib/review";
 import { useModalFocus } from "@/lib/useModalFocus";
 import { LessonLinksProvider } from "./WikiLink";
@@ -51,7 +53,7 @@ import CrashCourse from "./CrashCourse";
 import "./WorkspaceQoL.css";
 import { ScratchpadProvider, useScratchpad } from "./ScratchpadContext";
 
-type Page = "home" | "path" | "lesson" | "tools" | "review" | "crash";
+type Page = "home" | "path" | "tasks" | "lesson" | "tools" | "review" | "crash";
 const tracks = [
   {
     key: "fractions",
@@ -179,7 +181,8 @@ export default function Workspace({ lessons }: { lessons: Lesson[] }) {
   );
 }
 function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
-  const { open: scratchOpen, setOpen: setScratchOpen } = useScratchpad();
+  const { open: scratchOpen, setOpen: setScratchOpen, size: scratchSize } =
+    useScratchpad();
   const [page, setPage] = useState<Page>("home");
   const [crashVisited, setCrashVisited] = useState(false);
   const [lessonId, setLessonId] = useState(lessons[0]?.id ?? "");
@@ -252,6 +255,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
   const nav = [
     { page: "home" as Page, label: "Twoja przestrzeń", icon: Home },
     { page: "path" as Page, label: "Ścieżka nauki", icon: Network },
+    { page: "tasks" as Page, label: "Zadania", icon: Dumbbell },
     { page: "review" as Page, label: "Powtórki", icon: RotateIcon },
     { page: "tools" as Page, label: "Laboratorium", icon: Wrench },
     { page: "crash" as Page, label: "Sprawdzian jutro", icon: Zap },
@@ -264,7 +268,9 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
   return (
     <LessonLinksProvider lessons={lessons} onOpen={openLesson}>
       <MotionConfig reducedMotion="user">
-        <div className={`app-shell ${scratchOpen ? "has-scratchpad" : ""}`}>
+        <div
+          className={`app-shell ${scratchOpen ? `has-scratchpad scratch-${scratchSize}` : ""}`}
+        >
           <a className="skip-link" href="#main">
             Przejdź do treści
           </a>
@@ -379,7 +385,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                 </strong>
               </div>
               <div className="topbar-actions">
-                {["lesson", "tools", "crash"].includes(page) && (
+                {["lesson", "tasks", "tools", "crash"].includes(page) && (
                   <button
                     className="icon-button"
                     aria-label="Brudnopis w kratkę"
@@ -855,6 +861,22 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         </aside>
                       </div>
                     </>
+                  )}
+                  {page === "tasks" && (
+                    <TasksCenter
+                      lessons={lessons}
+                      onSolved={(problemId, difficulty) => {
+                        const target = lessons.find((item) =>
+                          problemId.startsWith(`${item.generatorId}-`),
+                        );
+                        if (!target) return false;
+                        const granted = !progress.awarded.includes(problemId);
+                        setProgress((previous) =>
+                          award(previous, target.id, problemId, difficulty),
+                        );
+                        return granted;
+                      }}
+                    />
                   )}
                   {page === "tools" && (
                     <>

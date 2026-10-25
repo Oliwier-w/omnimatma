@@ -30,20 +30,22 @@ Zatrzymaj `dev` przed `build` — oba korzystają z `.next`. Testy E2E uruchamia
 - 60 mikro-lekcji w sześciu działach: ułamki zwykłe, macierze, liczby zespolone oraz trzy ścieżki maturalne (liczby i algebra, funkcje i ciągi, geometria i dane). Każda: ELI5, tryb szkolny, wizualny i akademicki, przykład, pułapki, generator z 5 poziomami, podpowiedzi i rozwiązanie.
 - Interaktywne modele ułamka, indeksów macierzy i płaszczyzny Gaussa. To modele podstawowe wspólne dla działu; opis konkretnej operacji znajduje się w notatce. Lekcje maturalne mają opis wizualny w treści, bez podstawiania niepasującego widgetu z innego działu.
 - Proceduralne losowanie, sprawdzanie wartości, wymuszanie postaci skróconej tam, gdzie wymaga jej zadanie, klawiatura matematyczna i brudnopis.
+- „Zadania” w menu: centrum treningowe z filtrami poziomu, działu, podtematu, trudności 1–5 lub mieszanej oraz trybami pojedynczego zadania, serii 10/20 i nieskończonego treningu. Nowe zadania pochodzą z `masterGenerator` obejmującego wszystkie 60 mikro-tematów; każde ma walidację, podpowiedzi i pełne kroki z dodatkowym „Nie rozumiem tego kroku”.
 - Drzewo umiejętności z rzeczywistymi zależnościami `[[Wikilinks]]`, bez blokowania lekcji.
 - Tablice wzorów z przykładami, kalkulator macierzy 2×2, wykres funkcji kwadratowej/liniowej ze sliderami, konfigurowalny egzamin z czasem i analizą tematów.
 - XP, poziomy, seria dni nauki i powtórki rozłożone w czasie. Opanowanie lekcji oznacza 5 samodzielnie rozwiązanych zadań; ujawnienie rozwiązania wyłącza XP za dane zadanie. Jeden problem nie daje XP wielokrotnie.
 - Manifest PWA, ikony i service worker dla wersji produkcyjnej. Fonty Inter i JetBrains Mono są lokalne, z dołączonymi licencjami OFL.
-- Brudnopis w kratkę: tekstowe kroki i rysowanie myszą, palcem lub rysikiem; kolory, grubość, cofanie i czyszczenie samego rysunku. Przycisk przy zadaniu lub ikona w górnym pasku lekcji, laboratorium i szybkiej powtórki. Na dużym ekranie zajmuje prawą połowę, na mniejszym pełną szerokość z obsługą fokusu.
+- Brudnopis Pro v2: canvas HTML5 z DPR i `ResizeObserver`, wygładzaniem linii, kratką/kropkami/czystą tablicą, pisakiem, zakreślaczem, gumką, liniami, osiami, tekstem/wzorami, cofaniem i ponawianiem oraz pan/zoom. Panel można przełączyć na 50% / 70% / pełny ekran; na małym ekranie działa jako modal z blokadą tła i fokusu.
+- Smooth Calculator w brudnopisie: tryb naukowy i akademicki, taśma historii, szablony macierzy/liczb zespolonych/statystyki, obsługa klawiatury i Framer Motion. Wynik jednym kliknięciem trafia do pola odpowiedzi albo notatek; kalkulator działa na zwalidowanym AST i białej liście funkcji, nie jest solverem równań symbolicznych.
 - Podglądy `[[Wikilinks]]`: najedź lub ustaw fokus klawiaturą, aby zobaczyć definicję i wzór z powiązanej notatki. Enter/kliknięcie otwiera lekcję; na ekranie dotykowym pierwszy dotyk pokazuje podgląd, drugi otwiera lekcję. Escape zamyka dymek. Obsługiwane są ID, tytuły, nazwy plików oraz `[[cel#sekcja|etykieta]]` (podgląd całej notatki).
 - „Kolokwium / Sprawdzian jutro” na Dashboardzie: wybór działów, wzory i pułapki z 12 podstawowych lekcji, po 2 losowane zadania na dział (maksymalnie 6), analiza po oddaniu i nowy zestaw. To powtórka fundamentów, nie prognoza egzaminu ani pełne pokrycie działu.
 - Nowa partia maturalna powstała na podstawie arkusza CKE `MMAP-P0-100-2608` (poziom podstawowy, termin poprawkowy, 24.08.2026): 30 typów zadań, 30 mikro-lekcji i 30 osobnych generatorów. Mapa zadań i granice: [`docs/matura-2026-analiza.md`](docs/matura-2026-analiza.md).
 
 ## Ważne granice
 
-**Brudnopis i szybki test są sesyjne.** Notatki i rysunek pozostają po zamknięciu panelu, zmianie zadania i przejściu do innej lekcji, ale znikają po odświeżeniu. Rysunek nie jest rozpoznawany jako matematyka. Tekstowy checker porównuje wartości tylko przy aktywnym zadaniu ćwiczeniowym; w laboratorium i szybkiej powtórce brudnopis służy do swobodnych notatek. Dla płynności: do 80 kresek po 700 punktów, 16 000 znaków notatek i sprawdzanie pierwszych 100 wierszy. Szybki test nie przyznaje XP, zachowuje odpowiedzi przy otwieraniu lekcji i wracaniu do powtórki; odświeżenie strony je usuwa. Wybór działów jest zablokowany w trakcie testu, a zmiana wyboru po oddaniu zaczyna nową powtórkę.
+**Brudnopis, kalkulator i szybki test są sesyjne.** Notatki, rysunek i bloki tekstowe pozostają po zamknięciu panelu, zmianie zadania i przejściu do innej lekcji, ale znikają po odświeżeniu. Rysunek nie jest rozpoznawany jako matematyka. Tekstowy checker porównuje wartości tylko przy aktywnym zadaniu ćwiczeniowym; w laboratorium i szybkiej powtórce brudnopis służy do swobodnych notatek. Dla płynności: do 400 kresek (do 3200 punktów każda), 16 000 znaków notatek, 160 znaków na blok tekstowy i sprawdzanie pierwszych 100 wierszy. Kalkulator ma limit 500 znaków i 16 wpisów historii; jego stan nie jest zapisywany trwale. Szybki test nie przyznaje XP, zachowuje odpowiedzi przy otwieraniu lekcji i wracaniu do powtórki; odświeżenie strony je usuwa. Wybór działów jest zablokowany w trakcie testu, a zmiana wyboru po oddaniu zaczyna nową powtórkę.
 
-**To nie jest uniwersalny CAS ani Photomath.** Sprawdzamy wartości ograniczonych wyrażeń liczbowych, macierzowych i zespolonych. Brudnopis porównuje każdy wiersz z wartością wyniku; nie dowodzi poprawności przekształceń równań ani zachowania dziedziny. Obsługiwane są m.in. `sqrt`, `abs`, `conj`, `det`, `inv`, `transpose`, `trace`, stałe `i`, `pi`, `e`. Nie wykonujemy kodu użytkownika ani dowolnego `mathjs.evaluate`. Symbole α i ∫ na klawiaturze nie oznaczają obsługi całkowania.
+**To nie jest uniwersalny CAS ani Photomath.** Sprawdzamy wartości ograniczonych wyrażeń liczbowych, macierzowych i zespolonych. Brudnopis porównuje każdy wiersz z wartością wyniku; nie dowodzi poprawności przekształceń równań ani zachowania dziedziny. Obsługiwane są m.in. `sqrt`, `abs`, `conj`, `det`, `inv`, `transpose`, `trace`, stałe `i`, `pi`, `e`. Checker nie wykonuje kodu użytkownika ani dowolnego `mathjs.evaluate`; kalkulator używa `evaluate` wyłącznie po walidacji AST i na białej liście funkcji, z limitem 500 znaków. Nie rozwiązuje równań symbolicznych, nie przyjmuje przypisań, importów ani jednostek. Symbole α i ∫ na klawiaturze nie oznaczają obsługi całkowania.
 
 **„Nieskończone” oznacza brak limitu losowań**, nie matematycznie nieskończony zbiór w obrębie poziomu. Parametry są ograniczone; zadania mogą się powtarzać. Poziomy 4–5 macierzy obejmują również 3×3; szczegółowe notatki o wyznacznikach i odwrotności uczą na 2×2, a hinty wyjaśniają rozwinięcie przez dopełnienia. W przyszłości potrzebne są odrębne lekcje metod 3×3.
 
@@ -66,7 +68,7 @@ curriculum_vault/
     Liczby/    # 10 notatek — liczby i algebra
     Funkcje/   # 10 notatek — funkcje i ciągi
     Geometria/ # 10 notatek — geometria i dane
-src/generators/   # rodziny generatorów i rejestr
+src/generators/   # rodziny generatorów, rejestr i masterGenerator
 src/lib/vaultParser.ts
 inbox_materialy/  # prywatne materiały użytkownika, ignorowane przez Git
 ```
@@ -91,6 +93,6 @@ W Vercel wybierz **Import Git Repository → Next.js**, katalog główny repo, N
 ## Decyzje techniczne
 
 - `gray-matter`: YAML i czytelny błąd frontmatter; prosty renderer treści obsługuje akapity, pogrubienie, nagłówki i matematykę, bez surowego HTML/wykonywania Markdown.
-- `mathjs`: parser AST i wybrane operacje; własna lista dozwolonych węzłów i limity. Nie używamy ogólnego evaluator/solver.
+- `mathjs`: parser AST i wybrane operacje; własna lista dozwolonych węzłów i limity. Checker nie używa ogólnego evaluatora; kalkulator dopuszcza `evaluate` tylko po walidacji AST i białej liście funkcji. Nie ma solvera równań symbolicznych.
 - `framer-motion`, `lucide-react`, `canvas-confetti`, Tailwind: animacje, ikony, feedback i warstwa prezentacji. KaTeX renderuje matematykę z `trust: false`.
 - Playwright jest wyłącznie zależnością developerską do regresji UI/offline. Brak zewnętrznych wywołań podczas nauki i testów jednostkowych.

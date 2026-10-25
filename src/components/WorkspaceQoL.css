@@ -63,18 +63,26 @@
   color: var(--muted);
 }
 @media (min-width: 1100px) {
-  .app-shell.has-scratchpad .main-shell {
+  .app-shell.has-scratchpad.scratch-half .main-shell {
     margin-right: 50vw;
+  }
+  .app-shell.has-scratchpad.scratch-wide .main-shell {
+    margin-right: 70vw;
+  }
+  .app-shell.has-scratchpad.scratch-full .main-shell {
+    margin-right: 0;
   }
   .app-shell.has-scratchpad main {
     padding: 25px 22px;
   }
   .app-shell.has-scratchpad .lesson-layout,
   .app-shell.has-scratchpad .crash-grid,
-  .app-shell.has-scratchpad .tool-grid {
+  .app-shell.has-scratchpad .tool-grid,
+  .app-shell.has-scratchpad .tasks-layout {
     grid-template-columns: minmax(0, 1fr);
   }
-  .app-shell.has-scratchpad .lesson-side {
+  .app-shell.has-scratchpad .lesson-side,
+  .app-shell.has-scratchpad .tasks-side {
     display: none;
   }
   .with-scratchpad .answer-row {

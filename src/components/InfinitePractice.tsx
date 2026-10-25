@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -46,6 +46,16 @@ export default function InfinitePractice({
   const [credited, setCredited] = useState(false);
   const { open: scratchOpen, setOpen: setScratchOpen } = useScratchpad();
   useScratchpadAnswer(problem.answer);
+  useEffect(() => {
+    const insert = (event: Event) => {
+      const value = (event as CustomEvent<string>).detail;
+      if (typeof value !== "string") return;
+      setInput(value);
+      setResult(null);
+    };
+    window.addEventListener("omnimatma:insert-answer", insert);
+    return () => window.removeEventListener("omnimatma:insert-answer", insert);
+  }, []);
   function next(level = difficulty) {
     setProblem(generateProblem(lesson.generatorId, level));
     setInput("");
