@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+.env*
+!.env.example
+.vercel/
+.obsidian/
+inbox_materialy/*
+!inbox_materialy/.gitkeep
+*.log
+playwright-report/
+test-results/

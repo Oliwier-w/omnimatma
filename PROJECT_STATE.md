@@ -1,0 +1,128 @@
+# STAN PROJEKTU OMNIMATMA (MASTER ROADMAP & AGENT TRACKER)
+
+> **INSTRUKCJA DLA AGENTA AI:** Poniższa lista to katalog głównych działów. Twoim zadaniem podczas pracy nad jakimkolwiek punktem jest **rozbicie go na wszystkie możliwe podtematy (mikro-lekcje)**, dopisanie ich tutaj jako podpunktów i wygenerowanie dla każdego z nich osobnej notatki w `/curriculum_vault` oraz generatora w `src/generators/`. Nie pomijaj żadnego zagadnienia matematycznego istniejącego w programie nauczania!
+
+---
+
+## FAZA 1: ARCHITEKTURA, DESIGN SYSTEM PREMIUM & SILNIK (PRIORYTET 1)
+- [x] **1.1 Inicjalizacja Aplikacji & Git:** Next.js App Router, TypeScript, Tailwind CSS, Framer Motion, Lucide, KaTeX, Math.js, Canvas-Confetti; `.gitignore`, lokalny Git `main`, manifest, ikony i produkcyjny service worker.
+- [x] **1.2 Design System "Ultra-Premium":** Responsywny Bento/Glass, Deep Space + Paper/Neon/Matcha/High Contrast, Ctrl/Cmd+K, animacje z reduced motion, rzeczywisty XP i poziom, konfetti.
+- [x] **1.3 Most Obsidian <-> Next.js:** Rekurencyjny `vaultParser.ts`, walidacja YAML/sekcji/generatorów/wikilinków/cykli, cztery tryby każdej lekcji i klikalny graf rzeczywistych zależności. Notatki są wczytywane przy buildzie, nie przez połączenie z aplikacją Obsidian.
+- [x] **1.4 Silnik i klawiatura — zakres startowy:** 30 generatorów × 5 poziomów, losowanie bez limitu, hinty i wyjaśnione kroki, brudnopis, klawiatura. Solver proceduralny tylko dla obsługiwanych rodzin; sprawdzanie wartości wyrażeń, NIE dowolnych równań ani dowodów. α i ∫ są symbolami zapisu, nie deklaracją obsługi całek.
+- [x] **1.5 Sandbox i narzędzia — zakres startowy:** Klikalne tablice wzorów, macierze 2×2 (suma/iloczyn/wyznacznik/odwrotność), wykres ax²+bx+c, konfigurowalny egzamin z czasem i analizą, lokalne powtórki z wydłużaniem odstępów i resetem po błędzie.
+
+**Granice FAZY 1:** Gotowy działający fundament, nie uniwersalny CAS, OCR, edytor wykresów dowolnych funkcji ani kompletny kurs. Generatory mają skończone zakresy parametrów i mogą powtarzać zadania. Pięć samodzielnych zadań to umowny próg opanowania. Dane są lokalne w przeglądarce; brak synchronizacji. Offline działa po pobraniu produkcyjnej strony i zasobów. Szczegóły i uruchomienie: `README.md`.
+
+### Weryfikacja wdrożenia (2026-10-25)
+- `npm run check` — TypeScript OK; **55/55 testów jednostkowych**, 0 błędów. Sprawdzono wszystkie 30 generatorów × 5 poziomów na wielu ziarnach, niezależne wyniki działań, bezpieczeństwo wejścia, parser, XP i harmonogram powtórek.
+- `npm run build` — **OK**, Next.js 16.4.3; statyczna strona `/` i manifest.
+- `npm run test:e2e` — **10/10 testów Chromium** (desktop i telefon), w tym cztery tryby, pięć trudności, błędne/poprawne odpowiedzi, brak XP po ujawnieniu rozwiązania, trwałość XP/motywu, wyszukiwanie, graf, kalkulator, egzamin i automatyczne oddanie po czasie oraz przeładowanie offline z rozwiązaniem zadania.
+- `npm audit --audit-level=low` — **0 podatności**; KaTeX podniesiono do wersji naprawionej.
+- Dodano `.github/workflows/check.yml`; lokalne testy wykonano na Windows/Node 24. Przebiegu GitHub Actions i zdalnego deploymentu Vercel nie testowano (brak zdalnego repo).
+- Obejrzano zrzuty desktop/mobile. Jest to startowy materiał autorski; potrzebny dalszy przegląd dydaktyczny i rozwój brakujących mikrotematów, nie deklaracja certyfikowanej zgodności całego kursu.
+
+---
+
+## FAZA 2: KOMPLETNA MAPA MATEMATYKI (OD ABSOLUTNEGO ZERA DO STUDIÓW)
+*(Agencie: Rozwijaj każdy poniższy dział na pojedyncze lekcje i dopisuj nowe podpunkty!)*
+
+### POZIOM 0: Fundamenty Intuicyjne (Dla osób zaczynających całkowicie od zera)
+- [ ] **0.1 Czym są liczby i ilości:** Wizualne liczenie obiektów, pojęcie zera, porównywanie wielkości, oś liczbowa jako droga.
+- [ ] **0.2 Dodawanie i odejmowanie od podstaw:** Łączenie zbiorów na klockach, dopełnianie do 10, dodawanie i odejmowanie w słupku (krok po kroku z przenoszeniem), liczby ujemne (metafora temperatury i długu).
+- [ ] **0.3 Mnożenie i dzielenie od podstaw:** Mnożenie jako wielokrotne dodawanie (wizualne siatki prostokątów), sprytna nauka tabliczki mnożenia bez kucia, dzielenie jako sprawiedliwy podział, dzielenie z resztą, dzielenie pisemne.
+- [ ] **0.4 Kolejność wykonywania działań i nawiasy:** Drzewa wyrażeń arytmetycznych, dlaczego mnożenie jest przed dodawaniem.
+
+### POZIOM 1: Arytmetyka, Liczby i Podstawy Algebry (Szkoła Podstawowa Klasy 4-8)
+- [ ] **1.1 Własności liczb całkowitych:** Cechy podzielności (przez 2, 3, 4, 5, 9, 10, 11...), liczby pierwsze i złożone, rozkład na czynniki pierwsze, NWD i NWW (metoda tabelkowa i algorytm Euklidesa).
+- [ ] **1.2 Ułamki zwykłe (Kompletny moduł wizualny):** Pojęcie ułamka (koła/paski), skracanie i rozszerzanie, ułamki niewłaściwe i liczby mieszane, sprowadzanie do wspólnego mianownika, dodawanie, odejmowanie, mnożenie, odwrotność i dzielenie ułamków, ułamki piętrowe.
+  - [x] `fractions-meaning` — Pojęcie ułamka.
+  - [x] `fractions-simplify` — Skracanie ułamków.
+  - [x] `fractions-common` — Wspólny mianownik.
+  - [x] `fractions-add` — Dodawanie ułamków.
+  - [x] `fractions-subtract` — Odejmowanie ułamków.
+  - [x] `fractions-multiply` — Mnożenie ułamków.
+  - [x] `fractions-divide` — Dzielenie ułamków.
+  - [x] `fractions-mixed` — Liczby mieszane.
+  - [x] `fractions-compare` — Porównywanie ułamków.
+  - [x] `fractions-compound` — Ułamki piętrowe.
+  - [ ] Dalsze mikrotematy: rozszerzanie jako osobna lekcja, odwrotność, zamiana niewłaściwego na mieszaną, zadania tekstowe i pełna ścieżka prerekwizytów arytmetycznych.
+- [ ] **1.3 Ułamki dziesiętne i system pozycyjny:** Zamiana ułamków zwykłych na dziesiętne, okresowość, działania pisemne na ułamkach dziesiętnych, zaokrąglanie liczb, szacowanie wyników.
+- [ ] **1.4 Procenty i proporcje (Matematyka życiowa i finansowa):** Czym jest procent i promil, zamiana procentów na ułamki, obliczanie procentu z liczby, obliczanie liczby z procentu, podwyżki, obniżki, podatki (VAT), oprocentowanie lokat i kredytów, proporcjonalność prosta i odwrotna (mnożenie na krzyż).
+- [ ] **1.5 Potęgi i Pierwiastki:** Potęga o wykładniku naturalnym, całkowitym ujemnym i wymiernym, wszystkie prawa działań na potęgach, notacja wykładnicza, pierwiastek kwadratowy i sześcienny, wyłączanie czynnika przed znak pierwiastka, usuwanie niewymierności z mianownika.
+- [ ] **1.6 Wstęp do Algebry i Równania:** Czym jest niewiadoma $x$ (metafora wagi szalkowej), jednomiany, redukcja wyrazów podobnych, mnożenie nawiasów, rozwiązywanie równań liniowych krok po kroku, zadania tekstowe z treścią.
+- [ ] **1.7 Geometria Płaska (Planimetria Podstawowa):** Punkt, prosta, odcinek, kąty (przyległe, wierzchołkowe, odpowiadające, naprzemianległe), trójkąty (własności, przystawanie, twierdzenie Pitagorasa, trójkąty ekierkowe 30-60-90 i 45-45-90), czworokąty (kwadrat, prostokąt, równoległobok, romb, trapez – pola i obwody), koło i okrąg (liczba $\pi$, długość łuku, pole wycinka), układ współrzędnych na płaszczyźnie, przekształcenia geometryczne (symetrie).
+- [ ] **1.8 Geometria Przestrzenna (Stereometria Podstawowa):** Graniastosłupy, ostrosłupy, walec, stożek, kula – siatki 3D, pola powierzchni, objętości, jednostki pola i objętości (zamiana jednostek bez błędów).
+
+### POZIOM 2: Szkoła Średnia – Poziom Podstawowy i Rozszerzony (Komplet do Matury)
+- [ ] **2.1 Zbiory, Przedziały i Wartość Bezwzględna:** Działania na zbiorach (suma, iloczyn, różnica), przedziały liczbowe, pojęcie wartości bezwzględnej (interpretacja geometryczna na osi), równania i nierówności z wartością bezwzględną.
+- [ ] **2.2 Wyrażenia Algebraiczne i Wzory Skróconego Mnożenia:** Kwadrat sumy/różnicy, różnica kwadratów, sześciany, trójkąt Pascala, dwumian Newtona, rozkład na czynniki.
+- [ ] **2.3 Układy Równań:** Metoda podstawiania, metoda przeciwnych współczynników, interpretacja graficzna (układ oznaczony, nieoznaczony, sprzeczny).
+- [ ] **2.4 Pojęcie Funkcji i jej Własności:** Dziedzina, zbiór wartości, miejsca zerowe, monotoniczność, parzystość/nieparzystość, odczytywanie własności z wykresu, przekształcenia wykresów funkcji (przesunięcia o wektor, symetrie, wartość bezwzględna).
+- [ ] **2.5 Funkcja Liniowa:** Postać kierunkowa i ogólna, współczynnik kierunkowy $a$ i wyraz wolny $b$, warunki równoległości i prostopadłości prostych, nierówności liniowe.
+- [ ] **2.6 Funkcja Kwadratowa (Pełne Kompendium):** Postać ogólna, kanoniczna, iloczynowa, wyróżnik $\Delta$, wierzchołek paraboli $(p, q)$, równania i nierówności kwadratowe, wzory Viète'a, równania z parametrem, zagadnienia optymalizacyjne.
+- [ ] **2.7 Wielomiany i Funkcje Wymierne:** Dzielenie wielomianów (pisemne i schemat Hornera), twierdzenie Bézouta, twierdzenie o pierwiastkach wymiernych, równania i nierówności wielomianowe (wężyk), wyrażenia wymierne, dziedzina, równania i nierówności wymierne, funkcja homograficzna i jej asymptoty.
+- [ ] **2.8 Funkcja Wykładnicza i Logarytmiczna:** Definicja logarytmu, wszystkie prawa działań na logarytmach (logarytm iloczynu, ilorazu, potęgi, wzór na zamianę podstawy), wykresy, równania i nierówności wykładnicze oraz logarytmiczne.
+- [ ] **2.9 Trygonometria (Od Trójkąta do Koła Trygonometrycznego):** Funkcje trygonometryczne kąta ostrego, miara łukowa (radiany), koło trygonometryczne (wszystkie ćwiartki), jedynka trygonometryczna i tożsamości, wzory redukcyjne, funkcje sumy i różnicy kątów, podwojonego kąta, wykresy funkcji trygonometrycznych, równania i nierówności trygonometryczne.
+- [ ] **2.10 Ciągi Liczbowe:** Określenie ciągu, monotoniczność, ciąg arytmetyczny ($a_n$, suma $S_n$), ciąg geometryczny ($a_n$, suma $S_n$), procent składany, granica ciągu, szeregi geometryczne zbieżne.
+- [ ] **2.11 Planimetria, Geometria Analityczna i Stereometria Zaawansowana:** Twierdzenie Talesa, podobieństwo trójkątów, twierdzenie sinusów i cosinusów, okrąg wpisany i opisany, wektory na płaszczyźnie, równanie prostej i okręgu, odległość punktu od prostej, kąty w bryłach (między prostą a płaszczyzną, kąt dwuścienny), przekroje brył.
+- [ ] **2.12 Kombinatoryka i Rachunek Prawdopodobieństwa:** Reguła mnożenia i dodawania, permutacje, wariacje (z powtórzeniami i bez), kombinacje (symbol Newtona), klasyczna definicja prawdopodobieństwa, drzewka stochastyczne, prawdopodobieństwo warunkowe, twierdzenie o prawdopodobieństwie całkowitym, wzór Bayesa, schemat Bernoulliego.
+
+### POZIOM 3: Studia Wyższe – Matematyka Akademicka i Informatyczna (Politechnika / Uniwersytet)
+- [ ] **3.1 Logika Matematyczna i Teoria Mnogości:** Rachunek zdań (koniunkcja, alternatywa, implikacja, równoważność), tabele prawdy, prawa De Morgana, tautologie, kwantyfikatory ($\forall, \exists$), metody dowodzenia twierdzeń (wprost, nie wprost, indukcja matematyczna), iloczyn kartezjański, relacje (równoważności, porządku), funkcje (iniekcja, surjekcja, bijekcja, funkcja odwrotna).
+- [ ] **3.2 Liczby Zespolone ($\mathbb{C}$):** Jednostka urojona $i$, postać algebraiczna ($z = a + bi$), sprzężenie, moduł, dodawanie, odejmowanie, mnożenie i dzielenie liczb zespolonych, płaszczyzna Gaussa, argument główny, postać trygonometryczna i wykładnicza (wzór Eulera), wzór de Moivre'a (potęgowanie), pierwiastkowanie liczb zespolonych, równania zespolone i wielomianowe w $\mathbb{C}$, interpretacja geometryczna na płaszczyźnie.
+  - [x] `complex-parts` — Część rzeczywista i urojona.
+  - [x] `complex-add` — Dodawanie liczb zespolonych.
+  - [x] `complex-subtract` — Odejmowanie liczb zespolonych.
+  - [x] `complex-multiply` — Mnożenie liczb zespolonych.
+  - [x] `complex-divide` — Dzielenie liczb zespolonych.
+  - [x] `complex-conjugate` — Sprzężenie liczby zespolonej.
+  - [x] `complex-modulus` — Moduł liczby zespolonej.
+  - [x] `complex-power` — Potęgi naturalne i cykl potęg i.
+  - [x] `complex-gauss` — Płaszczyzna Gaussa.
+  - [x] `complex-equation` — Równanie liniowe zespolone.
+  - [ ] Dalsze mikrotematy: argument, postacie trygonometryczna/wykładnicza, de Moivre, pierwiastki i równania wielomianowe.
+- [ ] **3.3 Algebra Liniowa i Geometria z Macierzami:**
+  - [x] `matrix-entry` — Elementy macierzy.
+  - [x] `matrix-add` — Dodawanie macierzy.
+  - [x] `matrix-subtract` — Odejmowanie macierzy.
+  - [x] `matrix-scale` — Mnożenie przez skalar.
+  - [x] `matrix-transpose` — Transpozycja macierzy.
+  - [x] `matrix-multiply` — Mnożenie macierzy.
+  - [x] `matrix-det` — Wyznacznik (lekcja 2×2, zadania zaawansowane 3×3).
+  - [x] `matrix-inverse` — Macierz odwrotna (lekcja 2×2, zadania zaawansowane 3×3).
+  - [x] `matrix-trace` — Ślad macierzy (dodatkowy mikrotemat).
+  - [x] `matrix-equation` — Równanie AX=B.
+  - [ ] Dalsze mikrotematy: Sarrus, Laplace jako oddzielne lekcje, Gauss/Jordan, rząd i kolejne zagadnienia poniżej.
+  - Macierze: definicja, rodzaje macierzy, transpozycja, dodawanie, mnożenie przez skalar, mnożenie macierzy ($A \cdot B$), operacje elementarne na wierszach/kolumnach.
+  - Wyznaczniki: wyznacznik 2x2, 3x3 (metoda Sarrusa), rozwinięcie Laplace'a dla $n \times n$, własności wyznaczników.
+  - Macierz odwrotna: metoda dopełnień algebraicznych oraz metoda bezwyznacznikowa (Gaussa-Jordana), równania macierzowe ($AX=B$, $XA=B$, $AXB=C$).
+  - Rząd macierzy: metoda minorów i schodkowania macierzy.
+  - Układy równań liniowych: twierdzenie Kroneckera-Capellego, wzory Cramera, metoda eliminacji Gaussa i Gaussa-Jordana, układy jednorodne.
+  - Przestrzenie wektorowe (liniowe): liniowa niezależność wektorów, baza i wymiar przestrzeni, zmiana bazy, podprzestrzenie.
+  - Przekształcenia liniowe, wartości własne ($\lambda$), wielomian charakterystyczny, wektory własne, diagonalizacja macierzy.
+  - Iloczyn skalarny, wektorowy i mieszany w $\mathbb{R}^3$, ortogonalizacja Grama-Schmidta, płaszczyzny i proste w przestrzeni 3D.
+- [ ] **3.4 Struktury Algebraiczne (Algebra Abstrakcyjna):** Działania wewnętrzne (łączność, przemienność, element neutralny, element odwrotny), półgrupy, monoidy, Grupy i Grupy Abelowe (sprawdzanie aksjomatów krok po kroku, podgrupy, twierdzenie Lagrange'a, grupy permutacji $S_n$, grupy cykliczne), Pierścienie (z jedynką, przemienne, dzielniki zera), Ciała (ciała reszt $\mathbb{Z}_p$), homomorfizmy i izomorfizmy.
+- [ ] **3.5 Analiza Matematyczna 1 (Funkcje jednej zmiennej):**
+  - Granice ciągów (twierdzenie o trzech ciągach, liczba $e$, symbole nieoznaczone).
+  - Granice funkcji (w punkcie, jednostronne, w nieskończoności), ciągłość funkcji, rodzaje nieciągłości, asymptoty (pionowe, poziome, ukośne).
+  - Pochodna funkcji: definicja ilorazu różnicowego, interpretacja geometryczna (styczna) i fizyczna, wzory na pochodne, pochodna funkcji złożonej (Chain Rule), pochodne wyższych rzędów, reguła de l'Hospitala.
+  - Badanie przebiegu zmienności funkcji: monotoniczność, ekstrema lokalne i globalne, wklęsłość/wypukłość, punkty przegięcia, wzór Taylora i Maclaurina.
+  - Całka nieoznaczona: funkcje pierwotne, całkowanie bezpośrednie, całkowanie przez podstawienie, całkowanie przez części, całkowanie funkcji wymiernych (ułamki proste), trygonometrycznych i niewymiernych.
+  - Całka oznaczona i niewłaściwa: wzór Newtona-Leibniza, interpretacja geometryczna, obliczanie pól obszarów płaskich, długości łuku, objętości i pola brył obrotowych.
+- [ ] **3.6 Analiza Matematyczna 2 (Szeregi, Funkcje wielu zmiennych, Równania Różniczkowe):** Szeregi liczbowe (kryteria zbieżności: d'Alemberta, Cauchy'ego, porównawcze, Leibniza), szeregi potęgowe i Fouriera, pochodne cząstkowe, gradient, ekstrema funkcji wielu zmiennych (Hesjan, mnożniki Lagrange'a), całki podwójne i potrójne (współrzędne biegunowe, walcowe, sferyczne), równania różniczkowe zwyczajne (o zmiennych rozdzielonych, liniowe I i II rzędu).
+- [ ] **3.7 Statystyka Opisowa i Matematyczna:**
+  - Rodzaje cech statystycznych, szereg szczegółowy i rozdzielczy (przedziałowy i punktowy), histogramy, dystrybuanta empiryczna.
+  - Miary położenia: średnia arytmetyczna, ważona, geometryczna, harmoniczna, mediana (kwartyl drugi), dominanta (moda), kwartyle ($Q_1, Q_3$), decyle, percentyle.
+  - Miary zmienności (rozproszenia): rozstęp, rozstęp ćwiartkowy ($IQR$), wariancja, odchylenie standardowe, współczynnik zmienności.
+  - Miary asymetrii i koncentracji: współczynnik skośności, kurtoza, korelacja Pearsona, regresja liniowa.
+  - Zmienne losowe (dyskretne i ciągłe), rozkład normalny (standaryzacja, tablice rozkładu Gaussa), przedziały ufności, weryfikacja hipotez statystycznych.
+- [ ] **3.8 Matematyka Dyskretna, Numeryczna i Informatyczna:**
+  - Systemy liczbowe dla informatyków: binarny, ósemkowy, szesnastkowy (HEX), konwersje, kodowanie liczb ujemnych (ZM, U1, U2), arytmetyka zmiennoprzecinkowa (IEEE 754), operacje bitowe (AND, OR, XOR, NOT, przesunięcia).
+  - Arytmetyka modularna (`mod`), kongruencje, małe twierdzenie Fermata, algorytm RSA (kryptografia).
+  - Rekurencje liniowe (równanie charakterystyczne, ciąg Fibonacciego).
+  - Teoria grafów: rodzaje grafów, macierz sąsiedztwa i incydencji, przeszukiwanie (BFS, DFS), cykl i droga Eulera/Hamiltona, drzewa rozpinające (Kruskal, Prim), najkrótsze ścieżki (algorytm Dijkstry), kolorowanie grafów.
+
+---
+## DZIENNIK ZMIAN (CHANGELOG AGENTÓW):
+- **[2026-10-25]** — Wdrożono fundament FAZY 1 i 30 mikro-lekcji z notatkami oraz generatorami. Uporządkowano podwójne rozszerzenia oryginalnych plików; szablon rozszerzono o tryby szkolny/wizualny i metadane. Inbox był pusty. Źródła oraz luki: `docs/curriculum-sources.md`. Zdalne repo i deployment nie zostały utworzone.
+- **[Start Projektu]** - Zainicjowano architekturę Ultra-Premium i kompletną mapę matematyki od Poziomu 0 do Studiów Wyższych.
