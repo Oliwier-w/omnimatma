@@ -13,4 +13,6 @@ export type Lesson = {
   pitfalls: string;
   formula: string;
   content: string;
+  aliases?: string[];
+  related?: string;
 };

@@ -27,15 +27,21 @@ Zatrzymaj `dev` przed `build` — oba korzystają z `.next`. Testy E2E uruchamia
 ## Co działa
 
 - Responsywny dashboard Bento/Glass, nawigacja, wyszukiwarka Ctrl/Cmd+K, pięć motywów, ograniczenie animacji zgodnie z preferencją systemową.
-- 30 mikro-lekcji w trzech działach: ułamki zwykłe, macierze, liczby zespolone. Każda: ELI5, tryb szkolny, wizualny i akademicki, przykład, pułapki, generator z 5 poziomami, podpowiedzi i rozwiązanie.
-- Interaktywne modele ułamka, indeksów macierzy i płaszczyzny Gaussa. To modele podstawowe wspólne dla działu; opis konkretnej operacji znajduje się w notatce.
+- 60 mikro-lekcji w sześciu działach: ułamki zwykłe, macierze, liczby zespolone oraz trzy ścieżki maturalne (liczby i algebra, funkcje i ciągi, geometria i dane). Każda: ELI5, tryb szkolny, wizualny i akademicki, przykład, pułapki, generator z 5 poziomami, podpowiedzi i rozwiązanie.
+- Interaktywne modele ułamka, indeksów macierzy i płaszczyzny Gaussa. To modele podstawowe wspólne dla działu; opis konkretnej operacji znajduje się w notatce. Lekcje maturalne mają opis wizualny w treści, bez podstawiania niepasującego widgetu z innego działu.
 - Proceduralne losowanie, sprawdzanie wartości, wymuszanie postaci skróconej tam, gdzie wymaga jej zadanie, klawiatura matematyczna i brudnopis.
 - Drzewo umiejętności z rzeczywistymi zależnościami `[[Wikilinks]]`, bez blokowania lekcji.
 - Tablice wzorów z przykładami, kalkulator macierzy 2×2, wykres funkcji kwadratowej/liniowej ze sliderami, konfigurowalny egzamin z czasem i analizą tematów.
 - XP, poziomy, seria dni nauki i powtórki rozłożone w czasie. Opanowanie lekcji oznacza 5 samodzielnie rozwiązanych zadań; ujawnienie rozwiązania wyłącza XP za dane zadanie. Jeden problem nie daje XP wielokrotnie.
 - Manifest PWA, ikony i service worker dla wersji produkcyjnej. Fonty Inter i JetBrains Mono są lokalne, z dołączonymi licencjami OFL.
+- Brudnopis w kratkę: tekstowe kroki i rysowanie myszą, palcem lub rysikiem; kolory, grubość, cofanie i czyszczenie samego rysunku. Przycisk przy zadaniu lub ikona w górnym pasku lekcji, laboratorium i szybkiej powtórki. Na dużym ekranie zajmuje prawą połowę, na mniejszym pełną szerokość z obsługą fokusu.
+- Podglądy `[[Wikilinks]]`: najedź lub ustaw fokus klawiaturą, aby zobaczyć definicję i wzór z powiązanej notatki. Enter/kliknięcie otwiera lekcję; na ekranie dotykowym pierwszy dotyk pokazuje podgląd, drugi otwiera lekcję. Escape zamyka dymek. Obsługiwane są ID, tytuły, nazwy plików oraz `[[cel#sekcja|etykieta]]` (podgląd całej notatki).
+- „Kolokwium / Sprawdzian jutro” na Dashboardzie: wybór działów, wzory i pułapki z 12 podstawowych lekcji, po 2 losowane zadania na dział (maksymalnie 6), analiza po oddaniu i nowy zestaw. To powtórka fundamentów, nie prognoza egzaminu ani pełne pokrycie działu.
+- Nowa partia maturalna powstała na podstawie arkusza CKE `MMAP-P0-100-2608` (poziom podstawowy, termin poprawkowy, 24.08.2026): 30 typów zadań, 30 mikro-lekcji i 30 osobnych generatorów. Mapa zadań i granice: [`docs/matura-2026-analiza.md`](docs/matura-2026-analiza.md).
 
-## Ważne granice pierwszej wersji
+## Ważne granice
+
+**Brudnopis i szybki test są sesyjne.** Notatki i rysunek pozostają po zamknięciu panelu, zmianie zadania i przejściu do innej lekcji, ale znikają po odświeżeniu. Rysunek nie jest rozpoznawany jako matematyka. Tekstowy checker porównuje wartości tylko przy aktywnym zadaniu ćwiczeniowym; w laboratorium i szybkiej powtórce brudnopis służy do swobodnych notatek. Dla płynności: do 80 kresek po 700 punktów, 16 000 znaków notatek i sprawdzanie pierwszych 100 wierszy. Szybki test nie przyznaje XP, zachowuje odpowiedzi przy otwieraniu lekcji i wracaniu do powtórki; odświeżenie strony je usuwa. Wybór działów jest zablokowany w trakcie testu, a zmiana wyboru po oddaniu zaczyna nową powtórkę.
 
 **To nie jest uniwersalny CAS ani Photomath.** Sprawdzamy wartości ograniczonych wyrażeń liczbowych, macierzowych i zespolonych. Brudnopis porównuje każdy wiersz z wartością wyniku; nie dowodzi poprawności przekształceń równań ani zachowania dziedziny. Obsługiwane są m.in. `sqrt`, `abs`, `conj`, `det`, `inv`, `transpose`, `trace`, stałe `i`, `pi`, `e`. Nie wykonujemy kodu użytkownika ani dowolnego `mathjs.evaluate`. Symbole α i ∫ na klawiaturze nie oznaczają obsługi całkowania.
 
@@ -45,7 +51,9 @@ Zatrzymaj `dev` przed `build` — oba korzystają z `.next`. Testy E2E uruchamia
 
 **Offline wymaga pierwszego uruchomienia online w produkcji.** Poczekaj na instalację service workera i pobranie zasobów; dopiero wtedy aplikacja i zawarte w niej lekcje działają bez sieci. Nieukończona instalacja może pokazać jedynie ekran offline. W trybie developerskim SW jest wyłączony. Aktualizacje treści wymagają połączenia i ponownego builda; przeglądarka może usunąć cache.
 
-To startowy zbiór, nie pełny program matematyki. Źródła i luki: [`docs/curriculum-sources.md`](docs/curriculum-sources.md).
+**Partia maturalna nie jest pełnym kursem do matury.** Obejmuje 30 typów z jednego arkusza CKE i uczy potrzebnej teorii, ale nie wyczerpuje całej podstawy programowej ani nie jest prognozą przyszłych egzaminów. Generator sprawdza liczbowy punkt kontrolny (np. najmniejszą liczbę całkowitą, sumę pierwiastków, współczynnik, długość, prawdopodobieństwo), a nie pełny dowód, przedział lub przekształcenie symboliczne. Zadania dowodowe są ćwiczone rachunkowo i wyjaśniane symbolicznie; aplikacja nie ocenia dowodu. Szczegóły: [`docs/matura-2026-analiza.md`](docs/matura-2026-analiza.md).
+
+To nadal startowy zbiór, nie pełny program matematyki. Źródła i luki: [`docs/curriculum-sources.md`](docs/curriculum-sources.md).
 
 ## Edycja notatek
 
@@ -54,6 +62,10 @@ curriculum_vault/
   Ulamki/      # 10 notatek
   Macierze/    # 10 notatek
   Zespolone/   # 10 notatek
+  Matura/
+    Liczby/    # 10 notatek — liczby i algebra
+    Funkcje/   # 10 notatek — funkcje i ciągi
+    Geometria/ # 10 notatek — geometria i dane
 src/generators/   # rodziny generatorów i rejestr
 src/lib/vaultParser.ts
 inbox_materialy/  # prywatne materiały użytkownika, ignorowane przez Git

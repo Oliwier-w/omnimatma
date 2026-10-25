@@ -1,18 +1,18 @@
 "use client";
 import { useEffect } from "react";
+import { acquireInert, acquireScrollLock } from "./interactionLock";
 
 export function useModalFocus(active: boolean) {
   useEffect(() => {
     if (!active) return;
     const previous = document.activeElement as HTMLElement | null;
     const background = [
-      ...document.querySelectorAll<HTMLElement>(".main-shell, .sidebar"),
+      ...document.querySelectorAll<HTMLElement>(
+        ".main-shell, .sidebar, .scratchpad-panel",
+      ),
     ];
-    const oldOverflow = document.body.style.overflow;
-    background.forEach((e) => {
-      e.inert = true;
-    });
-    document.body.style.overflow = "hidden";
+    const releaseBackground = acquireInert(background);
+    const releaseScroll = acquireScrollLock(document.body);
     const modal = () =>
       [...document.querySelectorAll<HTMLElement>('[aria-modal="true"]')].at(-1);
     const focusables = () =>
@@ -43,10 +43,8 @@ export function useModalFocus(active: boolean) {
     return () => {
       cancelAnimationFrame(frame);
       document.removeEventListener("keydown", trap, true);
-      background.forEach((e) => {
-        e.inert = false;
-      });
-      document.body.style.overflow = oldOverflow;
+      releaseBackground();
+      releaseScroll();
       previous?.focus();
     };
   }, [active]);

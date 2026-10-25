@@ -9,6 +9,9 @@ coverage/
 .obsidian/
 inbox_materialy/*
 !inbox_materialy/.gitkeep
+!inbox_materialy/przetworzone/
+inbox_materialy/przetworzone/*
+!inbox_materialy/przetworzone/.gitkeep
 *.log
 playwright-report/
 test-results/

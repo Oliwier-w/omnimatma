@@ -14,4 +14,11 @@ Konsultacja: 25.10.2026. Informacje CKE i AGH sprawdzono przed opracowaniem tre�
 
 30 autorskich, atomowych lekcji: 10 o ułamkach, 10 o podstawach macierzy (wyznacznik i odwrotność wyjaśnione na 2×2), 10 o podstawach liczb zespolonych (potęgi naturalne przez mnożenie i cykl potęg i, równania liniowe). Zaawansowane generatory macierzowe 4–5 obejmują także 3×3 z podpowiedziami o dopełnieniach; nie zastępuje to osobnych lekcji metod 3×3. Ślad macierzy jest dodatkowym mikrotematem, a ułamki piętrowe rozszerzają praktykę kolejności działań; nie twierdzimy, że są osobnymi wymaganiami wskazanych informatorów.
 
-To NIE jest pełne pokrycie podstawy programowej ani sylabusów. Brakuje m.in. ułamków dziesiętnych, procentów, pełnej ścieżki arytmetycznych prerekwizytów, postaci trygonometrycznej/wykładniczej, argumentu, wzoru de Moivre’a, pierwiastkowania, wyznaczników 3×3 i ogólnych, eliminacji Gaussa, rzędu, przestrzeni wektorowych i wartości własnych. Nie przeprowadzono w tej partii audytu matury, analizy, statystyki ani logiki. Odsyłacze prerekwizytów wskazują wyłącznie istniejące lekcje tego startowego zbioru; brak odsyłacza nie oznacza braku potrzebnej wiedzy wstępnej.
+Druga partia to 30 lekcji i 30 generatorów opracowanych na podstawie arkusza CKE
+`MMAP-P0-100-2608` (matematyka, poziom podstawowy, termin poprawkowy, 24.08.2026).
+Mapa zadań, teoria i granice znajdują się w `docs/matura-2026-analiza.md`. Każdy
+typ zadania z arkusza ma osobną mikro-lekcję i osobny generator z pięcioma
+poziomami; nie jest to kopia zadań, lecz autorskie warianty uczące tej samej
+umiejętności.
+
+To NIE jest pełne pokrycie podstawy programowej ani sylabusów. Brakuje m.in. ułamków dziesiętnych, procentów, pełnej ścieżki arytmetycznych prerekwizytów, postaci trygonometrycznej/wykładniczej, argumentu, wzoru de Moivre’a, pierwiastkowania, wyznaczników 3×3 i ogólnych, eliminacji Gaussa, rzędu, przestrzeni wektorowych i wartości własnych. W tej partii nie ma jeszcze pełnego kursu analizy, statystyki zaawansowanej ani logiki; materiał maturalny obejmuje wybrane typy z jednego arkusza, nie całą podstawę programową. Odsyłacze prerekwizytów wskazują wyłącznie istniejące lekcje tego zbioru; brak odsyłacza nie oznacza braku potrzebnej wiedzy wstępnej.

@@ -1,68 +1,35 @@
 "use client";
-import katex from "katex";
-import { Fragment } from "react";
+import { Fragment, type ReactNode } from "react";
+import { tokenizeLessonText } from "@/lib/wikiLinks";
+import WikiLink from "./WikiLink";
+import { MathFormula } from "./MathFormula";
+export { MathFormula } from "./MathFormula";
 
-export function MathFormula({
-  value,
-  block = false,
-}: {
-  value: string;
-  block?: boolean;
-}) {
-  let html: string;
-  try {
-    html = katex.renderToString(value, {
-      throwOnError: false,
-      displayMode: block,
-      trust: false,
-      macros: {
-        "\\vx": "{\\color{#a5a0ff}x}",
-        "\\va": "{\\color{#a5a0ff}a}",
-        "\\vb": "{\\color{#5edbb7}b}",
-      },
-    });
-  } catch {
-    return <code>{value}</code>;
-  }
-  return (
-    <span
-      className={block ? "math-block" : "math-inline"}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  );
-}
-
-export default function MathText({ text }: { text: string }) {
-  const chunks = text.split(/(\$\$[\s\S]*?\$\$|\$[^$\n]+\$)/g);
-  return (
-    <div className="lesson-prose">
-      {chunks.map((chunk, i) => {
-        if (chunk.startsWith("$$"))
-          return <MathFormula key={i} value={chunk.slice(2, -2)} block />;
-        if (chunk.startsWith("$"))
-          return <MathFormula key={i} value={chunk.slice(1, -1)} />;
-        return (
-          <Fragment key={i}>
-            {chunk.split("\n").map((line, j) => (
-              <Fragment key={j}>
-                {j > 0 && <br />}
-                {line
-                  .replace(/^#{1,4}\s*/, "")
-                  .split(/(\*\*.*?\*\*)/g)
-                  .map((s, k) =>
-                    s.startsWith("**") ? (
-                      <strong key={k}>{s.slice(2, -2)}</strong>
-                    ) : (
-                      <Fragment key={k}>
-                        {s.replace(/\[\[([^\]]+)\]\]/g, "$1")}
-                      </Fragment>
-                    ),
-                  )}
-              </Fragment>
-            ))}
+function renderInline(text: string): ReactNode[] {
+  return tokenizeLessonText(text).map((token, i) => {
+    if (token.kind === "displayMath" || token.kind === "math")
+      return (
+        <MathFormula
+          key={i}
+          value={token.value}
+          block={token.kind === "displayMath"}
+        />
+      );
+    if (token.kind === "wiki") return <WikiLink key={i} value={token.value} />;
+    if (token.kind === "strong")
+      return <strong key={i}>{renderInline(token.value)}</strong>;
+    return (
+      <Fragment key={i}>
+        {token.value.split("\n").map((line, j) => (
+          <Fragment key={j}>
+            {j > 0 && <br />}
+            {line.replace(/^#{1,4}\s*/, "")}
           </Fragment>
-        );
-      })}
-    </div>
-  );
+        ))}
+      </Fragment>
+    );
+  });
+}
+export default function MathText({ text }: { text: string }) {
+  return <div className="lesson-prose">{renderInline(text)}</div>;
 }

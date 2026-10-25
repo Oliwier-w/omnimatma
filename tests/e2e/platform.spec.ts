@@ -19,7 +19,7 @@ test("dashboard is responsive, mathematical rendering has no errors", async ({
   await expect(
     page.getByRole("heading", { name: /W końcu po Twojemu/ }),
   ).toBeVisible();
-  await expect(page.locator(".track-card")).toHaveCount(3);
+  await expect(page.locator(".track-card")).toHaveCount(6);
   await expect(page.locator(".katex-error")).toHaveCount(0);
   expect(
     await page.evaluate(
@@ -121,7 +121,7 @@ test("search, keyboard focus, theme persistence and actual skill edges", async (
   await expect(page.locator("html")).toHaveAttribute("data-theme", "paper");
   await page.keyboard.press("Escape");
   await navigate(page, "Ścieżka nauki");
-  await expect(page.locator(".graph-node")).toHaveCount(30);
+  await expect(page.locator(".graph-node")).toHaveCount(60);
   expect(await page.locator(".graph-edges>path").count()).toBeGreaterThan(20);
   expect(
     await page.evaluate(

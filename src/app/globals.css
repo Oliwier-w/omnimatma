@@ -432,6 +432,8 @@ textarea.field {
   display: flex;
   flex-direction: column;
   padding: 32px 20px 15px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .brand {
   display: flex;
@@ -936,6 +938,11 @@ main {
     radial-gradient(ellipse at 75% 35%, #de9b6d0c, transparent 75%),
     var(--panel);
 }
+.track-card.blue {
+  background:
+    radial-gradient(ellipse at 75% 35%, #81b5ff0d, transparent 75%),
+    var(--panel);
+}
 .track-card-top {
   display: flex;
   align-items: center;
@@ -1026,6 +1033,9 @@ main {
 }
 .track-card.peach .track-progress > span {
   color: var(--peach);
+}
+.track-card.blue .track-progress > span {
+  color: #81b5ff;
 }
 .track-card-bottom {
   display: flex;

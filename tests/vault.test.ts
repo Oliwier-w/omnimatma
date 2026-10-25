@@ -38,12 +38,19 @@ const standalone = source.replace(
   "następna lekcja",
 );
 
-test("vault contains 30 atomic lessons with four modes, examples and valid KaTeX", () => {
+test("vault contains 60 atomic lessons with four modes, examples and valid KaTeX", () => {
   const lessons = getLessons();
-  assert.equal(lessons.length, 30);
+  assert.equal(lessons.length, 60);
   const ids = new Set(lessons.map((lesson) => lesson.id));
-  assert.equal(ids.size, 30);
-  for (const category of ["Ułamki", "Macierze", "Liczby zespolone"])
+  assert.equal(ids.size, 60);
+  for (const category of [
+    "Ułamki",
+    "Macierze",
+    "Liczby zespolone",
+    "Matura · Liczby i algebra",
+    "Matura · Funkcje i ciągi",
+    "Matura · Geometria i dane",
+  ])
     assert.equal(
       lessons.filter((lesson) => lesson.category === category).length,
       10,

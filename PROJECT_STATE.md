@@ -23,6 +23,17 @@
 
 ---
 
+## QoL: PRZESTRZEŃ DO MYŚLENIA I SZYBKIE POWTÓRKI
+- [x] **Scratchpad:** Wspólny brudnopis w kratkę w lekcjach, laboratorium i trybie szybkiej powtórki. Prawa połowa dużego ekranu; na mniejszych ekranach pełna szerokość z blokadą tła, obsługą fokusu i powrotem do zadań. Tekstowe kroki, SVG mysz/palec/rysik, kolory, grubość, cofanie i czyszczenie rysunku bez kasowania tekstu.
+- [x] **Hover Preview:** Wikilinki w treści i sekcji powiązań są interaktywne. Podgląd prawdziwej definicji akademickiej i wzoru z notatki; hover/fokus, Escape, klik/Enter. Na dotyku pierwszy dotyk pokazuje podgląd, drugi otwiera lekcję. Rozpoznawane ID, tytuły, nazwy plików i etykiety `[[cel#sekcja|etykieta]]`; bez zgadywania nieistniejących pojęć.
+- [x] **Kolokwium / Sprawdzian jutro:** Wejście z Dashboardu i menu. Wybrane działy → wzory, definicje i pułapki z 12 podstawowych lekcji → po 2 losowane zadania z różnych tematów na dział (maks. 6), poziom 2/5 → analiza i rozwiązania po oddaniu. Odpowiedzi pozostają przy otwieraniu lekcji i powrocie do testu; aktywny test blokuje zmianę działów.
+
+**Granice:** Brudnopis i szybki test są sesyjne: odświeżenie usuwa ich zawartość. Rysunek nie jest rozpoznawany jako matematyka. Porównywanie kroków dotyczy wartości przy aktywnym zadaniu ćwiczeniowym, nie dowodów. Bez XP za szybki test. „Pewniaki” oznaczają wybrane fundamenty, nie prognozę egzaminu ani pełne pokrycie programu. Nie dodano zależności ani zewnętrznych usług; treści pochodzą z istniejącego vaulta. Dla płynności ograniczono liczbę punktów/kreski i długość notatek (szczegóły w README).
+
+**Weryfikacja QoL:** `npm run check` — TypeScript OK, **128/128 testów** po dodaniu partii maturalnej (w tym dobór i balans powtórki, resolver/tokenizer wikilinków i zagnieżdżone blokady fokusu/tła). `npm run build` — **OK**. `npm run test:e2e` — **18/18 testów desktop/mobile**, w tym rysowanie, dotyk, cofanie/czyszczenie, zmiana rozmiaru, zachowanie notatek, fokus i zagnieżdżona wyszukiwarka, podglądy/Enter/Escape, wybór działów i zachowanie odpowiedzi po powrocie z lekcji. Obejrzano zrzuty UI. `npm audit --audit-level=low` — **0 podatności**. Prace implementacyjne delegowano do dwóch agentów; niezależny przegląd wykrył i pomógł poprawić przypadki fokusu, dotyku i nawigacji.
+
+---
+
 ## FAZA 2: KOMPLETNA MAPA MATEMATYKI (OD ABSOLUTNEGO ZERA DO STUDIÓW)
 *(Agencie: Rozwijaj każdy poniższy dział na pojedyncze lekcje i dopisuj nowe podpunkty!)*
 
@@ -66,6 +77,18 @@
 - [ ] **2.10 Ciągi Liczbowe:** Określenie ciągu, monotoniczność, ciąg arytmetyczny ($a_n$, suma $S_n$), ciąg geometryczny ($a_n$, suma $S_n$), procent składany, granica ciągu, szeregi geometryczne zbieżne.
 - [ ] **2.11 Planimetria, Geometria Analityczna i Stereometria Zaawansowana:** Twierdzenie Talesa, podobieństwo trójkątów, twierdzenie sinusów i cosinusów, okrąg wpisany i opisany, wektory na płaszczyźnie, równanie prostej i okręgu, odległość punktu od prostej, kąty w bryłach (między prostą a płaszczyzną, kąt dwuścienny), przekroje brył.
 - [ ] **2.12 Kombinatoryka i Rachunek Prawdopodobieństwa:** Reguła mnożenia i dodawania, permutacje, wariacje (z powtórzeniami i bez), kombinacje (symbol Newtona), klasyczna definicja prawdopodobieństwa, drzewka stochastyczne, prawdopodobieństwo warunkowe, twierdzenie o prawdopodobieństwie całkowitym, wzór Bayesa, schemat Bernoulliego.
+
+### MATURA 2026 — ARKUSZ CKE `MMAP-P0-100-2608` (30 TYPÓW ZADAŃ)
+- [x] **Źródło i analiza:** arkusz poziomu podstawowego, termin poprawkowy 24.08.2026, 30 zadań / 50 punktów. Pełna mapa zadań, teoria i granice: `docs/matura-2026-analiza.md`. Plik źródłowy przeniesiony do `inbox_materialy/przetworzone/`.
+- [x] **Liczby i algebra (10 lekcji + 10 generatorów):** `matura-liczby-pierwiastki`, `matura-liczby-potegi`, `matura-liczby-logarytmy`, `matura-liczby-wzory-skrocone`, `matura-liczby-podzielnosc`, `matura-liczby-nierownosc-liniowa`, `matura-liczby-rownanie-iloczynowe`, `matura-liczby-wyrazenia-wymierne`, `matura-liczby-nierownosc-kwadratowa`, `matura-liczby-uklad-rownan`.
+- [x] **Funkcje i ciągi (10 lekcji + 10 generatorów):** `matura-funkcje-przedzialami`, `matura-funkcje-liniowa`, `matura-funkcje-kwadratowa`, `matura-funkcje-ciag-geometryczny`, `matura-funkcje-ciag-arytmetyczny`, `matura-funkcje-ciag-trzywyrazowy`, `matura-funkcje-trygonometria`, `matura-funkcje-katy-okregu`, `matura-funkcje-trapez`, `matura-funkcje-trojkat-prostokatny`.
+- [x] **Geometria i dane (10 lekcji + 10 generatorów):** `matura-geometria-podobienstwo`, `matura-geometria-prosta`, `matura-geometria-okrag`, `matura-geometria-proste-rownolegle`, `matura-geometria-graniastoslup`, `matura-geometria-ostroslup-kat`, `matura-geometria-ostroslup-krawedzie`, `matura-geometria-prawdopodobienstwo`, `matura-geometria-statystyka`, `matura-geometria-optymalizacja`.
+- [x] **UI:** trzy nowe karty ścieżek w istniejącym Bento/Glass, wspólny widok lekcji, 6 kart na dashboardzie i 6 kolumn drzewa umiejętności; bez nowych zależności i bez płatnych usług.
+- [x] **Weryfikacja:** `npm run check`, `npm run build`, `npm run test:e2e` — wyniki dopisane w sekcji weryfikacji poniżej.
+
+**Granice partii maturalnej:** 30 typów z jednego arkusza, nie pełna podstawa programowa. Generator sprawdza liczbowy punkt kontrolny, nie dowód, przedział ani przekształcenie symboliczne. Zadania dowodowe są ćwiczone rachunkowo z pełnym wyjaśnieniem; aplikacja nie ocenia dowodu. „Nieskończone” oznacza brak limitu losowań w opisanych zakresach. Nowe lekcje mają cztery tryby; w trybie wizualnym korzystają z opisu i istniejących narzędzi, bez podstawiania niepasującego widgetu z innego działu.
+
+**Weryfikacja MATURA 2026 (2026-10-25):** `npm run check` — TypeScript OK, **128/128 testów jednostkowych**, w tym 30 nowych generatorów × 5 poziomów, determinizm, niezależne orakulum, KaTeX, rejestr 30 typów i parser 60 lekcji. `npm run build` — **OK**, Next.js 16.4.3, statyczna strona `/` i manifest. `npm run test:e2e` — **18/18 testów Chromium** (desktop i telefon), w tym nowa ścieżka maturalna, cztery tryby, wygenerowane zadanie, 6 kart ścieżek i 60 węzłów grafu. Plik PDF przeniesiono do `inbox_materialy/przetworzone/`. Nowe notatki: 30 plików w `curriculum_vault/Matura/{Liczby,Funkcje,Geometria}`. Brak nowych zależności, płatnych usług i zmian w dotychczasowej logice generatorów.
 
 ### POZIOM 3: Studia Wyższe – Matematyka Akademicka i Informatyczna (Politechnika / Uniwersytet)
 - [ ] **3.1 Logika Matematyczna i Teoria Mnogości:** Rachunek zdań (koniunkcja, alternatywa, implikacja, równoważność), tabele prawdy, prawa De Morgana, tautologie, kwantyfikatory ($\forall, \exists$), metody dowodzenia twierdzeń (wprost, nie wprost, indukcja matematyczna), iloczyn kartezjański, relacje (równoważności, porządku), funkcje (iniekcja, surjekcja, bijekcja, funkcja odwrotna).
@@ -124,5 +147,7 @@
 
 ---
 ## DZIENNIK ZMIAN (CHANGELOG AGENTÓW):
+- **[2026-10-25 · MATURA 2026]** — Dodano 30 mikro-lekcji i 30 generatorów na podstawie arkusza CKE `MMAP-P0-100-2608` (poziom podstawowy, termin poprawkowy): trzy ścieżki „Liczby i algebra”, „Funkcje i ciągi” oraz „Geometria i dane”. Zachowano Bento/Glass i istniejące widoki; dodano 3 karty ścieżek, etykietę poziomu `LICEUM`, przewijanie sidebara i warunkowe ukrycie niepasującego widgetu. Wyniki: 128/128 testów jednostkowych, build OK, 18/18 E2E. PDF przeniesiono do `inbox_materialy/przetworzone/`; mapa i granice w `docs/matura-2026-analiza.md`.
+- **[2026-10-25 · QoL]** — Dodano brudnopis tekst/rysowanie, podglądy wikilinków i tryb „Sprawdzian jutro”. Zachowano istniejące generatory i postęp XP; dodano testy oraz dokumentację ograniczeń sesyjnych.
 - **[2026-10-25]** — Wdrożono fundament FAZY 1 i 30 mikro-lekcji z notatkami oraz generatorami. Uporządkowano podwójne rozszerzenia oryginalnych plików; szablon rozszerzono o tryby szkolny/wizualny i metadane. Inbox był pusty. Źródła oraz luki: `docs/curriculum-sources.md`. Zdalne repo i deployment nie zostały utworzone.
 - **[Start Projektu]** - Zainicjowano architekturę Ultra-Premium i kompletną mapę matematyki od Poziomu 0 do Studiów Wyższych.

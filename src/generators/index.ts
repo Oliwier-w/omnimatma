@@ -4,6 +4,9 @@ import { checkAnswer } from "../lib/math";
 import { fractionProblem } from "./fractions";
 import { matrixProblem } from "./matrices";
 import { complexProblem } from "./complex";
+import { maturaLiczbyProblem } from "./maturaLiczby";
+import { maturaFunkcjeProblem } from "./maturaFunkcje";
+import { maturaGeometriaProblem } from "./maturaGeometria";
 export type { Problem } from "./shared";
 export { checkAnswer, checkSteps } from "../lib/math";
 
@@ -113,6 +116,36 @@ export const GENERATOR_IDS = [
   "complex-power",
   "complex-gauss",
   "complex-equation",
+  "matura-liczby-pierwiastki",
+  "matura-liczby-potegi",
+  "matura-liczby-logarytmy",
+  "matura-liczby-wzory-skrocone",
+  "matura-liczby-podzielnosc",
+  "matura-liczby-nierownosc-liniowa",
+  "matura-liczby-rownanie-iloczynowe",
+  "matura-liczby-wyrazenia-wymierne",
+  "matura-liczby-nierownosc-kwadratowa",
+  "matura-liczby-uklad-rownan",
+  "matura-funkcje-przedzialami",
+  "matura-funkcje-liniowa",
+  "matura-funkcje-kwadratowa",
+  "matura-funkcje-ciag-geometryczny",
+  "matura-funkcje-ciag-arytmetyczny",
+  "matura-funkcje-ciag-trzywyrazowy",
+  "matura-funkcje-trygonometria",
+  "matura-funkcje-katy-okregu",
+  "matura-funkcje-trapez",
+  "matura-funkcje-trojkat-prostokatny",
+  "matura-geometria-podobienstwo",
+  "matura-geometria-prosta",
+  "matura-geometria-okrag",
+  "matura-geometria-proste-rownolegle",
+  "matura-geometria-graniastoslup",
+  "matura-geometria-ostroslup-kat",
+  "matura-geometria-ostroslup-krawedzie",
+  "matura-geometria-prawdopodobienstwo",
+  "matura-geometria-statystyka",
+  "matura-geometria-optymalizacja",
 ] as const;
 
 export function generateProblem(
@@ -131,6 +164,12 @@ export function generateProblem(
     ? fractionProblem
     : generatorId.startsWith("matrix-")
       ? matrixProblem
-      : complexProblem;
+      : generatorId.startsWith("complex-")
+        ? complexProblem
+        : generatorId.startsWith("matura-liczby-")
+          ? maturaLiczbyProblem
+          : generatorId.startsWith("matura-funkcje-")
+            ? maturaFunkcjeProblem
+            : maturaGeometriaProblem;
   return factory(generatorId, difficulty, seed, rng);
 }

@@ -9,11 +9,13 @@ import {
   Keyboard,
   ListChecks,
   Sparkles,
+  PencilRuler,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { generateProblem, checkProblemAnswer, checkSteps } from "@/generators";
 import type { Lesson } from "@/lib/lesson";
 import { MathFormula } from "./MathText";
+import { useScratchpad, useScratchpadAnswer } from "./ScratchpadContext";
 
 export default function InfinitePractice({
   lesson,
@@ -42,6 +44,8 @@ export default function InfinitePractice({
   const [keyboard, setKeyboard] = useState(false);
   const [answered, setAnswered] = useState(false);
   const [credited, setCredited] = useState(false);
+  const { open: scratchOpen, setOpen: setScratchOpen } = useScratchpad();
+  useScratchpadAnswer(problem.answer);
   function next(level = difficulty) {
     setProblem(generateProblem(lesson.generatorId, level));
     setInput("");
@@ -62,7 +66,10 @@ export default function InfinitePractice({
       if (!solution) {
         const granted = onSolved(problem.id, difficulty);
         setCredited(granted);
-        if (granted && !window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+        if (
+          granted &&
+          !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        )
           void confetti({
             particleCount: 65,
             spread: 65,
@@ -83,7 +90,9 @@ export default function InfinitePractice({
     ["∫", "integral()"],
   ];
   return (
-    <section className="panel practice-panel">
+    <section
+      className={`panel practice-panel ${scratchOpen ? "with-scratchpad" : ""}`}
+    >
       <div className="section-heading">
         <div>
           <span className="eyebrow">TWOJE MATEMATYCZNE LABORATORIUM</span>
@@ -191,7 +200,11 @@ export default function InfinitePractice({
           {result.message}
           {result.correct && (
             <span>
-              {solution ? "Tryb nauki — bez XP" : credited ? `+${difficulty * 10} XP` : "Już zaliczone · bez dodatkowego XP"}
+              {solution
+                ? "Tryb nauki — bez XP"
+                : credited
+                  ? `+${difficulty * 10} XP`
+                  : "Już zaliczone · bez dodatkowego XP"}
             </span>
           )}
         </div>
@@ -243,6 +256,19 @@ export default function InfinitePractice({
           </button>
         </div>
       )}
+      <button
+        type="button"
+        className="button scratchpad-launch"
+        aria-label={scratchOpen ? "Zamknij brudnopis" : "Otwórz brudnopis"}
+        aria-expanded={scratchOpen}
+        onClick={() => setScratchOpen(!scratchOpen)}
+      >
+        <span>
+          <PencilRuler size={17} />
+          {scratchOpen ? "Zamknij brudnopis" : "Otwórz brudnopis"}
+        </span>
+        <small>Kroki + rysowanie · papier w kratkę</small>
+      </button>
       <details className="scratchpad">
         <summary>
           Sprawdź mój krok <span className="muted">brudnopis matematyczny</span>

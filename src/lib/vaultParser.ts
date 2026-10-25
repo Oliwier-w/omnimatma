@@ -36,6 +36,36 @@ const generatorIds = new Set([
   "complex-power",
   "complex-gauss",
   "complex-equation",
+  "matura-liczby-pierwiastki",
+  "matura-liczby-potegi",
+  "matura-liczby-logarytmy",
+  "matura-liczby-wzory-skrocone",
+  "matura-liczby-podzielnosc",
+  "matura-liczby-nierownosc-liniowa",
+  "matura-liczby-rownanie-iloczynowe",
+  "matura-liczby-wyrazenia-wymierne",
+  "matura-liczby-nierownosc-kwadratowa",
+  "matura-liczby-uklad-rownan",
+  "matura-funkcje-przedzialami",
+  "matura-funkcje-liniowa",
+  "matura-funkcje-kwadratowa",
+  "matura-funkcje-ciag-geometryczny",
+  "matura-funkcje-ciag-arytmetyczny",
+  "matura-funkcje-ciag-trzywyrazowy",
+  "matura-funkcje-trygonometria",
+  "matura-funkcje-katy-okregu",
+  "matura-funkcje-trapez",
+  "matura-funkcje-trojkat-prostokatny",
+  "matura-geometria-podobienstwo",
+  "matura-geometria-prosta",
+  "matura-geometria-okrag",
+  "matura-geometria-proste-rownolegle",
+  "matura-geometria-graniastoslup",
+  "matura-geometria-ostroslup-kat",
+  "matura-geometria-ostroslup-krawedzie",
+  "matura-geometria-prawdopodobienstwo",
+  "matura-geometria-statystyka",
+  "matura-geometria-optymalizacja",
 ]);
 
 function filesIn(directory: string): string[] {
@@ -137,7 +167,9 @@ export function getLessons(
       fail(file, "provide formula or a display formula in section 2");
     try {
       katex.renderToString(formula!, { throwOnError: true, trust: false });
-    } catch (error) { fail(file, `invalid KaTeX formula: ${String(error)}`); }
+    } catch (error) {
+      fail(file, `invalid KaTeX formula: ${String(error)}`);
+    }
     const lesson: Lesson = {
       id,
       title: text("tytul"),
@@ -160,6 +192,8 @@ export function getLessons(
       pitfalls: sections.get(4)!,
       formula,
       content: content.trim(),
+      aliases: [id, text("tytul"), path.basename(file, ".md")],
+      related: sections.get(5)!,
     };
     for (const alias of [id, lesson.title, path.basename(file, ".md")]) {
       if (aliases.has(alias) && aliases.get(alias) !== id)
@@ -175,7 +209,7 @@ export function getLessons(
       ),
     });
   }
-  if (!pending.length) throw new Error('Vault contains no lessons');
+  if (!pending.length) throw new Error("Vault contains no lessons");
   const target = (ref: string) =>
     ref
       .replace(/^\[\[|\]\]$/g, "")
