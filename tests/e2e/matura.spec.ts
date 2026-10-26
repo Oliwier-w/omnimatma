@@ -30,7 +30,8 @@ test("matura track opens a complete four-mode lesson and checks a generated task
     .getByRole("button", { name: "Ścieżka nauki", exact: true })
     .click();
   await expect(page.locator(".skill-track")).toHaveCount(6);
-  await page.screenshot({ path: info.outputPath("matura-path.png"), fullPage: true });
+  // The stacked mobile tree is very tall; avoid allocating a huge bitmap.
+  await page.screenshot({ path: info.outputPath("matura-path.png"), fullPage: info.project.name === "desktop" });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,

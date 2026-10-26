@@ -1,5 +1,5 @@
 /* Increment VERSION when publishing a new offline shell. No user answers are cached. */
-const VERSION = "omnimatma-v1";
+const VERSION = "omnimatma-v2-ux";
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 const ASSETS = `${VERSION}-assets`;
@@ -7,6 +7,7 @@ const LIMITS = { [PAGES]: 32, [ASSETS]: 96 };
 
 // Warm resources already loaded before the first service worker took control.
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') { self.skipWaiting(); return; }
   if (event.data?.type !== 'CACHE_URLS' || !Array.isArray(event.data.urls)) return;
   const urls = event.data.urls.slice(0, 90).filter((value) => {
     if (typeof value !== 'string') return false;

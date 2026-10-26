@@ -1,7 +1,8 @@
 "use client";
 import katex from "katex";
+import { memo } from "react";
 
-export function MathFormula({
+export const MathFormula = memo(function MathFormula({
   value,
   block = false,
 }: {
@@ -29,4 +30,4 @@ export function MathFormula({
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
-}
+});

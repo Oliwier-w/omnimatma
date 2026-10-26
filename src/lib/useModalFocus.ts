@@ -14,7 +14,9 @@ export function useModalFocus(active: boolean) {
     const releaseBackground = acquireInert(background);
     const releaseScroll = acquireScrollLock(document.body);
     const modal = () =>
-      [...document.querySelectorAll<HTMLElement>('[aria-modal="true"]')].at(-1);
+      [...document.querySelectorAll<HTMLElement>('[aria-modal="true"]')]
+        .filter((element) => !element.closest("[inert]"))
+        .at(-1);
     const focusables = () =>
       [
         ...(modal()?.querySelectorAll<HTMLElement>(
@@ -29,7 +31,10 @@ export function useModalFocus(active: boolean) {
       const nodes = focusables();
       const first = nodes[0],
         last = nodes.at(-1);
-      if (event.shiftKey && document.activeElement === first) {
+      if (!modal()?.contains(document.activeElement)) {
+        event.preventDefault();
+        first?.focus();
+      } else if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         event.stopPropagation();
         last?.focus();

@@ -778,8 +778,9 @@ function ExamLab({ lessons }: { lessons: Lesson[] }) {
   );
 }
 
-export default function Tools({ lessons }: { lessons: Lesson[] }) {
-  const [tab, setTab] = useState("formula");
+export default function Tools({ lessons, initialTab = "formula", navigationKey = 0 }: { lessons: Lesson[]; initialTab?: "formula" | "matrix" | "graph" | "exam"; navigationKey?: number }) {
+  const [tab, setTab] = useState<string>(initialTab);
+  useEffect(() => setTab(initialTab), [initialTab, navigationKey]);
   const id = useId();
   const tabs = [
     ["formula", "Tablice wzorów"],

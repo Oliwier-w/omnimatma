@@ -141,7 +141,11 @@ test("wikilinks preview real notes on hover or keyboard focus and navigate on to
     ).toBeVisible();
     await page.keyboard.press("Escape");
   }
-  await link.hover();
+  if (info.project.name === "desktop") await link.hover();
+  else {
+    await link.blur();
+    await link.focus();
+  }
   const tooltip = page.getByRole("tooltip");
   await expect(tooltip).toBeVisible();
   await expect(

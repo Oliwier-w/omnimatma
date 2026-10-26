@@ -1,14 +1,12 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
   BookOpen,
-  Check,
   ChevronRight,
-  Command,
   Dumbbell,
   Flame,
   GraduationCap,
@@ -24,7 +22,6 @@ import {
   Target,
   Trophy,
   Wrench,
-  X,
   Zap,
   PencilRuler,
   Sigma,
@@ -47,10 +44,13 @@ import Tools from "./Tools";
 import SkillTree from "./SkillTree";
 import TasksCenter from "./TasksCenter";
 import { isReviewDue } from "@/lib/review";
-import { useModalFocus } from "@/lib/useModalFocus";
+import CommandPalette from "./CommandPalette";
+import ProfileDialog from "./ProfileDialog";
+import { DashboardCircleDemo, DashboardPerspectives } from "./DashboardDemos";
 import { LessonLinksProvider } from "./WikiLink";
 import CrashCourse from "./CrashCourse";
 import "./WorkspaceQoL.css";
+import "./WorkspaceRefresh.css";
 import { ScratchpadProvider, useScratchpad } from "./ScratchpadContext";
 
 type Page = "home" | "path" | "tasks" | "lesson" | "tools" | "review" | "crash";
@@ -190,20 +190,25 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
   const [progress, setProgress] = useState<Progress>(emptyProgress);
   const [ready, setReady] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [query, setQuery] = useState("");
   const [mobile, setMobile] = useState(false);
   const [settings, setSettings] = useState(false);
   const [storageError, setStorageError] = useState(false);
-  useModalFocus(searchOpen || settings);
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [trackLevel, setTrackLevel] = useState("all");
+  const [practiceTopic, setPracticeTopic] = useState<string>();
+  const [practiceRequest, setPracticeRequest] = useState(0);
+  const [toolTab, setToolTab] = useState<"formula" | "matrix" | "graph" | "exam">("formula");
+  const [toolRequest, setToolRequest] = useState(0);
   useEffect(() => {
     try {
-      setProgress(loadProgress(localStorage.getItem("omnimatma-v1")));
+      const saved = loadProgress(localStorage.getItem("omnimatma-v1"));
+      setProgress(saved);
+      if (lessons.some((item) => item.id === saved.lastLessonId))
+        setLessonId(saved.lastLessonId!);
     } catch {
       setStorageError(true);
     }
     setReady(true);
-  }, []);
+  }, [lessons]);
   useEffect(() => {
     if (!ready) return;
     document.documentElement.dataset.theme = progress.theme;
@@ -215,7 +220,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
   }, [progress, ready]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && !e.repeat) {
         e.preventDefault();
         setSettings(false);
         setSearchOpen((v) => !v);
@@ -229,9 +234,6 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  useEffect(() => {
-    if (searchOpen) searchRef.current?.focus();
-  }, [searchOpen]);
   const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
   const solved = Object.values(progress.solved).reduce((a, b) => a + b, 0);
   const completed = Object.values(progress.solved).filter((n) => n >= 5).length;
@@ -244,10 +246,12 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
     setPage(p);
     setScratchOpen(false);
     setMobile(false);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "instant" });
   };
   const openLesson = (l: Lesson) => {
+    if (!l) return;
     setLessonId(l.id);
+    setProgress((previous) => ({ ...previous, lastLessonId: l.id }));
     setMode("eli5");
     jump("lesson");
     setSearchOpen(false);
@@ -260,11 +264,12 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
     { page: "tools" as Page, label: "Laboratorium", icon: Wrench },
     { page: "crash" as Page, label: "Sprawdzian jutro", icon: Zap },
   ];
-  const filtered = lessons.filter((l) =>
-    `${l.title} ${l.category}`
-      .toLocaleLowerCase("pl")
-      .includes(query.toLocaleLowerCase("pl")),
-  );
+  const resumeLesson = lessons.find((item) => item.id === progress.lastLessonId)
+    ?? lessons.find((item) => (progress.solved[item.id] ?? 0) > 0)
+    ?? lessons.find((item) => item.id === "fractions-meaning")
+    ?? lessons[0];
+  const profileName = progress.displayName || "Odkrywca";
+  const profileInitial = progress.initial || "O";
   return (
     <LessonLinksProvider lessons={lessons} onOpen={openLesson}>
       <MotionConfig reducedMotion="user">
@@ -297,7 +302,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
             </button>
             <button
               className="search-trigger"
-              onClick={() => setSearchOpen(true)}
+              onClick={() => { setSettings(false); setSearchOpen(true); }}
             >
               <Search size={16} />
               <span>Znajdź swój temat</span>
@@ -310,6 +315,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                   key={n.page}
                   onClick={() => jump(n.page)}
                   className={`nav-item ${page === n.page ? "active" : ""}`}
+                  aria-current={page === n.page ? "page" : undefined}
                 >
                   <n.icon size={19} />
                   <span>{n.label}</span>
@@ -355,9 +361,9 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                 className="profile-button"
                 onClick={() => setSettings(true)}
               >
-                <span className="avatar">O</span>
+                <span className="avatar">{profileInitial}</span>
                 <span>
-                  <strong>Odkrywca</strong>
+                  <strong>{profileName}</strong>
                   <small>
                     Poziom {level} · {progress.xp} XP
                   </small>
@@ -384,6 +390,18 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                     : nav.find((n) => n.page === page)?.label}
                 </strong>
               </div>
+              <button
+                type="button"
+                className="header-search"
+                onClick={() => { setSettings(false); setSearchOpen(true); }}
+                aria-label="Szukaj tematu, wzoru lub zadania"
+                aria-haspopup="dialog"
+                aria-expanded={searchOpen}
+              >
+                <Search size={16} aria-hidden="true" />
+                <span>Szukaj tematu, wzoru lub zadania…</span>
+                <kbd>Ctrl+K</kbd>
+              </button>
               <div className="topbar-actions">
                 {["lesson", "tasks", "tools", "crash"].includes(page) && (
                   <button
@@ -408,7 +426,14 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                 >
                   <Palette size={18} />
                 </button>
-                <span className="avatar small">O</span>
+                <button
+                  type="button"
+                  className="avatar small profile-trigger"
+                  aria-label={`Profil: ${profileName}`}
+                  aria-haspopup="dialog"
+                  aria-expanded={settings}
+                  onClick={() => { setSearchOpen(false); setSettings(true); }}
+                >{profileInitial}</button>
               </div>
             </header>
             <main id="main" tabIndex={-1}>
@@ -418,12 +443,12 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                   zostanie zachowany.
                 </p>
               )}
-              <AnimatePresence mode="wait">
+              <AnimatePresence initial={false}>
                 <motion.div
+                  className="workspace-page"
                   key={page + (page === "lesson" ? lessonId : "")}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={false}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.22 }}
                 >
                   {page === "home" && (
@@ -435,6 +460,17 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         </span>
                         <span className="version-tag">OMNIMATMA / 01</span>
                       </div>
+                      <section className="resume-card panel" aria-label="Twój następny krok">
+                        <span className="resume-icon"><BookOpen size={23} /></span>
+                        <div>
+                          <span className="eyebrow">{progress.xp > 0 ? "DOBRZE CIĘ ZNOWU WIDZIEĆ" : "MAŁY KROK. WIELKIE AHA."}</span>
+                          <h2>{progress.xp > 0 ? `Wróć do nauki: ${resumeLesson?.title}` : "Odkrywaj we własnym tempie."}</h2>
+                          <p>{progress.xp > 0 ? "Twój postęp czeka. Kontynuuj od ostatniego tematu." : "Zacznij od podstaw — niczego nie blokujemy i nigdzie się nie spieszymy."}</p>
+                        </div>
+                        <button className="button primary" onClick={() => openLesson(resumeLesson)}>
+                          {progress.xp > 0 ? "Kontynuuj lekcję" : "Otwórz pierwszą lekcję"}<ArrowRight size={16} />
+                        </button>
+                      </section>
                       <section className="hero panel">
                         <div className="hero-copy">
                           <span className="chip hero-chip">
@@ -453,13 +489,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                           </p>
                           <button
                             className="button primary"
-                            onClick={() =>
-                              openLesson(
-                                lessons.find(
-                                  (l) => l.id === "fractions-meaning",
-                                ) ?? lessons[0],
-                              )
-                            }
+                            onClick={() => openLesson(resumeLesson)}
                           >
                             {solved ? "Wróć do nauki" : "Zacznij odkrywać"}
                             <ArrowRight size={17} />
@@ -555,8 +585,21 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                           Cała ścieżka <ArrowRight size={16} />
                         </button>
                       </div>
+                      <div className="learning-levels" role="group" aria-label="Poziom nauki">
+                        {[
+                          ["primary", "Podstawówka", "Solidne fundamenty, krok po kroku."],
+                          ["secondary", "Liceum", "Zrozum zależności. Przygotuj się do matury."],
+                          ["university", "Studia", "Macierze i świat liczb zespolonych."],
+                        ].map(([value, title, description]) => (
+                          <button key={value} className="learning-level-card" aria-pressed={trackLevel === value}
+                            onClick={() => setTrackLevel(trackLevel === value ? "all" : value)}>
+                            <GraduationCap size={20} /><strong>{title}</strong><span>{description}</span><ArrowUpRight size={16} />
+                          </button>
+                        ))}
+                      </div>
+                      {trackLevel !== "all" && <button className="text-button show-all-tracks" onClick={() => setTrackLevel("all")}>Pokaż wszystkie kierunki</button>}
                       <div className="track-grid">
-                        {tracks.map((t, i) => {
+                        {tracks.filter((t) => trackLevel === "all" || (trackLevel === "primary" ? t.key === "fractions" : trackLevel === "secondary" ? t.key.startsWith("matura") : ["matrix", "complex"].includes(t.key))).map((t, i) => {
                           const group = lessons.filter((l) =>
                             l.id.startsWith(t.key),
                           );
@@ -587,7 +630,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                               <div className="track-progress">
                                 <span
                                   style={{
-                                    width: `${(count / group.length) * 100}%`,
+                                    width: `${group.length ? (count / group.length) * 100 : 0}%`,
                                   }}
                                 />
                               </div>
@@ -604,62 +647,8 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         })}
                       </div>
                       <div className="bottom-bento">
-                        <section className="panel approach-card">
-                          <div className="section-heading">
-                            <span className="icon-tile">
-                              <BookOpen size={20} />
-                            </span>
-                            <span className="chip">
-                              JEDEN TEMAT. CZTERY PERSPEKTYWY.
-                            </span>
-                          </div>
-                          <h3>
-                            Każdy rozumie inaczej.
-                            <br />
-                            Znajdź swoje „aha!”.
-                          </h3>
-                          <p className="muted">
-                            Metafora, przepis, obraz czy definicja? Przełączaj
-                            sposób wyjaśniania w dowolnej lekcji.
-                          </p>
-                          <div className="mode-preview">
-                            {modes.map((m) => (
-                              <button
-                                className={m.color}
-                                key={m.id}
-                                onClick={() => {
-                                  openLesson(lesson);
-                                  setMode(m.id);
-                                }}
-                              >
-                                <span className={`tiny-dot ${m.color}`} />
-                                {m.short}
-                              </button>
-                            ))}
-                          </div>
-                        </section>
-                        <section className="panel lab-card">
-                          <span className="eyebrow">
-                            MNIEJ WKUWANIA. WIĘCEJ ODKRYWANIA.
-                          </span>
-                          <div className="lab-formula">
-                            <MathFormula
-                              value={String.raw`\color{#a5a0ff}x^{2}\color{#8e91a7}{+}\color{#5edbb7}y^{2}\color{#8e91a7}{=}\color{#f5bd87}r^{2}`}
-                            />
-                          </div>
-                          <h3>A co, jeśli zmienisz jedną liczbę?</h3>
-                          <p className="muted">
-                            Przesuwaj parametry. Sprawdzaj macierze.
-                            <br />
-                            Matematyka najlepiej działa w praktyce.
-                          </p>
-                          <button
-                            className="text-button"
-                            onClick={() => jump("tools")}
-                          >
-                            Otwórz laboratorium <ArrowUpRight size={16} />
-                          </button>
-                        </section>
+                        <DashboardPerspectives />
+                        <DashboardCircleDemo onOpenTools={() => { setToolTab("graph"); setToolRequest((n) => n + 1); jump("tools"); }} />
                       </div>
                       <footer className="page-footer">
                         <span>
@@ -864,6 +853,8 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                   )}
                   {page === "tasks" && (
                     <TasksCenter
+                      key={`${practiceTopic ?? "all"}-${practiceRequest}`}
+                      initialTopicId={practiceTopic}
                       lessons={lessons}
                       onSolved={(problemId, difficulty) => {
                         const target = lessons.find((item) =>
@@ -885,7 +876,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         title="Twoje laboratorium."
                         description="Sprawdź pomysł, zobacz zależność, przygotuj się do egzaminu. Tu możesz się mylić."
                       />
-                      <Tools lessons={lessons} />
+                      <Tools lessons={lessons} initialTab={toolTab} navigationKey={toolRequest} />
                     </>
                   )}
                   {page === "review" && (
@@ -954,131 +945,13 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
             </main>
           </div>
           {searchOpen && (
-            <div
-              className="modal-backdrop"
-              onClick={() => setSearchOpen(false)}
-            >
-              <section
-                className="search-modal panel"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Wyszukaj lekcję"
-                onClick={(e) => e.stopPropagation()}
-                onKeyDown={(e) => {
-                  if (e.key === "Tab") {
-                    const nodes =
-                      e.currentTarget.querySelectorAll<HTMLElement>(
-                        "button,input",
-                      );
-                    if (e.shiftKey && document.activeElement === nodes[0]) {
-                      e.preventDefault();
-                      nodes[nodes.length - 1]?.focus();
-                    } else if (
-                      !e.shiftKey &&
-                      document.activeElement === nodes[nodes.length - 1]
-                    ) {
-                      e.preventDefault();
-                      nodes[0]?.focus();
-                    }
-                  }
-                }}
-              >
-                <div className="search-input">
-                  <Search size={21} />
-                  <input
-                    ref={searchRef}
-                    aria-label="Szukaj tematu"
-                    placeholder="Czego chcesz się dziś nauczyć?"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                  <button
-                    className="icon-button"
-                    aria-label="Zamknij wyszukiwarkę"
-                    onClick={() => setSearchOpen(false)}
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-                <div className="search-results">
-                  {filtered.map((l) => (
-                    <button key={l.id} onClick={() => openLesson(l)}>
-                      <BookOpen size={18} />
-                      <span>
-                        <strong>{l.title}</strong>
-                        <small>{l.category}</small>
-                      </span>
-                      <ArrowUpRight size={17} />
-                    </button>
-                  ))}
-                  {!filtered.length && (
-                    <p className="muted">
-                      Brak takiej lekcji. Spróbuj „ułamki”, „macierze” lub
-                      „zespolone”.
-                    </p>
-                  )}
-                </div>
-                <div className="search-footer">
-                  <Command size={13} /> K — otwórz · Esc — zamknij · Tab —
-                  wybierz
-                </div>
-              </section>
-            </div>
+            <CommandPalette lessons={lessons} onLesson={openLesson}
+              onPractice={(item) => { setPracticeTopic(item.id); setPracticeRequest((n) => n + 1); setProgress((p) => ({ ...p, lastLessonId: item.id })); jump("tasks"); }}
+              onTool={(tool) => { setToolTab(tool); setToolRequest((n) => n + 1); jump("tools"); }}
+              onClose={() => setSearchOpen(false)} />
           )}
           {settings && (
-            <div className="modal-backdrop" onClick={() => setSettings(false)}>
-              <section
-                className="panel settings-modal"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Wygląd aplikacji"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="section-heading">
-                  <h2>Twoja przestrzeń. Twój klimat.</h2>
-                  <button
-                    autoFocus
-                    className="icon-button"
-                    aria-label="Zamknij ustawienia"
-                    onClick={() => setSettings(false)}
-                  >
-                    <X size={19} />
-                  </button>
-                </div>
-                <p className="muted">
-                  Motyw zapisuje się na tym urządzeniu. Animacje respektują
-                  ustawienie ograniczenia ruchu.
-                </p>
-                {[
-                  ["space", "Deep Space", "Ciemność, która pomaga się skupić."],
-                  [
-                    "paper",
-                    "Clean Paper",
-                    "Ciepły papier i spokojny kontrast.",
-                  ],
-                  ["neon", "Cyberpunk Neon", "Odrobina elektrycznej energii."],
-                  ["matcha", "Matcha Cozy", "Zieleń i wolniejsze tempo."],
-                  [
-                    "contrast",
-                    "Wysoki kontrast",
-                    "Wyraźne granice i większe odstępy.",
-                  ],
-                ].map(([id, name, desc]) => (
-                  <button
-                    key={id}
-                    className={`theme-option ${progress.theme === id ? "selected" : ""}`}
-                    onClick={() => setProgress((p) => ({ ...p, theme: id }))}
-                  >
-                    <span className={`theme-swatch swatch-${id}`} />
-                    <span>
-                      <strong>{name}</strong>
-                      <small>{desc}</small>
-                    </span>
-                    {progress.theme === id && <Check size={18} />}
-                  </button>
-                ))}
-              </section>
-            </div>
+            <ProfileDialog progress={progress} onChange={setProgress} onClose={() => setSettings(false)} />
           )}
         </div>
       </MotionConfig>

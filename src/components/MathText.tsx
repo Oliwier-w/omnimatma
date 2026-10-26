@@ -1,5 +1,5 @@
 "use client";
-import { Fragment, type ReactNode } from "react";
+import { Fragment, memo, type ReactNode } from "react";
 import { tokenizeLessonText } from "@/lib/wikiLinks";
 import WikiLink from "./WikiLink";
 import { MathFormula } from "./MathFormula";
@@ -30,6 +30,6 @@ function renderInline(text: string): ReactNode[] {
     );
   });
 }
-export default function MathText({ text }: { text: string }) {
+export default memo(function MathText({ text }: { text: string }) {
   return <div className="lesson-prose">{renderInline(text)}</div>;
-}
+});

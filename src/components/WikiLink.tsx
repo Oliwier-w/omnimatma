@@ -140,14 +140,16 @@ export default function WikiLink({ value }: { value: string }) {
         ref={trigger}
         className="wiki-link"
         aria-describedby={open ? id : undefined}
-        onMouseEnter={show}
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse" && window.matchMedia("(hover: hover)").matches) show();
+        }}
         onPointerDown={(event) => {
           previewOnly.current = event.pointerType !== "mouse" && !open;
         }}
         onPointerCancel={() => {
           previewOnly.current = false;
         }}
-        onMouseLeave={leave}
+        onPointerLeave={(event) => { if (event.pointerType === "mouse") leave(); }}
         onFocus={show}
         onBlur={hide}
         onClick={(event) => {

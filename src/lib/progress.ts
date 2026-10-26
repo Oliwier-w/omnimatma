@@ -7,6 +7,12 @@ export interface Progress {
   activity: string[];
   reviews: Record<string, ReviewEntry>;
   theme: string;
+  /** Optional identity fields. Absent in saves made before they existed. */
+  displayName?: string;
+  /** Initials shown in the avatar. */
+  initial?: string;
+  /** Lesson the user wants to resume. */
+  lastLessonId?: string;
 }
 export const emptyProgress: Progress = {
   xp: 0,
@@ -70,48 +76,166 @@ export function streak(days: string[], now = new Date()) {
   }
   return count;
 }
+export const PROGRESS_THEMES = [
+  "space",
+  "paper",
+  "neon",
+  "matcha",
+  "contrast",
+] as const;
+
+/**
+ * Bounds are intentionally generous so every legitimately saved progress from
+ * older releases keeps loading, while absurd payloads from hand-edited or
+ * hostile files are rejected instead of silently half-applied.
+ */
+const MAX_XP = 100_000_000;
+const MAX_ENTRIES = 100_000;
+const MAX_SOLUTIONS = 100_000;
+const MAX_ACTIVITY_DAYS = 1_000;
+const MAX_ID_LENGTH = 300;
+const MAX_LESSON_ID_LENGTH = 200;
+const MAX_NAME_LENGTH = 60;
+const MAX_INITIAL_LENGTH = 8;
+const MAX_REVIEW_INTERVAL = 366;
+const MAX_REVIEW_REPETITIONS = 1_000_000;
+const MIN_REVIEW_EASE = 0.5;
+const MAX_REVIEW_EASE = 10;
+const DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const FORBIDDEN_KEYS = new Set(["__proto__", "constructor", "prototype"]);
+
+/** Rejects arrays, class instances and anything that is not a plain record. */
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return false;
+  const proto: unknown = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+/** Rejects prototype-polluting keys such as `__proto__` or `constructor`. */
+function hasSafeKeys(value: Record<string, unknown>): boolean {
+  return Object.keys(value).every(
+    (key) =>
+      key.length > 0 && key.length <= MAX_ID_LENGTH && !FORBIDDEN_KEYS.has(key),
+  );
+}
+
+function isCount(value: unknown, max: number): value is number {
+  return (
+    typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value >= 0 &&
+    value <= max
+  );
+}
+
+function isStringOf(value: unknown, max: number): value is string {
+  return typeof value === "string" && value.length <= max;
+}
+
+/** Trims and validates optional identity text; invalid input is dropped. */
+function optionalText(value: unknown, max: number): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const text = value.trim();
+  if (!text || text.length > max) return undefined;
+  return text;
+}
+
+function cloneSolved(
+  value: Record<string, unknown>,
+): Record<string, number> | null {
+  const result: Record<string, number> = {};
+  for (const [key, count] of Object.entries(value)) {
+    if (key.length === 0 || key.length > MAX_LESSON_ID_LENGTH) return null;
+    if (!isCount(count, MAX_SOLUTIONS)) return null;
+    result[key] = count;
+  }
+  return result;
+}
+
+function cloneReview(value: unknown): ReviewEntry | null {
+  if (!isPlainRecord(value)) return null;
+  if (Object.keys(value).some((key) => FORBIDDEN_KEYS.has(key))) return null;
+  const { dueAt, lastReviewedAt, intervalDays, repetitions, ease } = value;
+  if (
+    typeof dueAt !== "string" ||
+    !Number.isFinite(Date.parse(dueAt)) ||
+    typeof lastReviewedAt !== "string" ||
+    !Number.isFinite(Date.parse(lastReviewedAt)) ||
+    typeof intervalDays !== "number" ||
+    !Number.isFinite(intervalDays) ||
+    intervalDays < 1 ||
+    intervalDays > MAX_REVIEW_INTERVAL ||
+    !isCount(repetitions, MAX_REVIEW_REPETITIONS) ||
+    typeof ease !== "number" ||
+    !Number.isFinite(ease) ||
+    ease < MIN_REVIEW_EASE ||
+    ease > MAX_REVIEW_EASE
+  )
+    return null;
+  return { dueAt, lastReviewedAt, intervalDays, repetitions, ease };
+}
+
+/**
+ * Rebuilds a Progress from untrusted data by copying only the explicit known
+ * fields. Unknown keys are dropped, records must be plain (never arrays) and
+ * must not carry prototype keys. Returns null when the payload is not a
+ * trustworthy progress record at all.
+ */
+export function sanitizeProgress(input: unknown): Progress | null {
+  if (!isPlainRecord(input) || !hasSafeKeys(input)) return null;
+  const { xp, solved, awarded, activity, reviews, theme } = input;
+  if (!isCount(xp, MAX_XP)) return null;
+  if (!isPlainRecord(solved) || !hasSafeKeys(solved)) return null;
+  const cleanSolved = cloneSolved(solved);
+  if (!cleanSolved) return null;
+  if (!Array.isArray(awarded) || awarded.length > MAX_ENTRIES) return null;
+  if (!awarded.every((value) => isStringOf(value, MAX_ID_LENGTH))) return null;
+  if (!Array.isArray(activity) || activity.length > MAX_ACTIVITY_DAYS)
+    return null;
+  if (
+    !activity.every(
+      (value) => typeof value === "string" && DAY_PATTERN.test(value),
+    )
+  )
+    return null;
+  if (!isPlainRecord(reviews) || !hasSafeKeys(reviews)) return null;
+  const entries = Object.entries(reviews);
+  if (entries.length > MAX_ENTRIES) return null;
+  const cleanReviews: Record<string, ReviewEntry> = {};
+  for (const [key, raw] of entries) {
+    if (key.length === 0 || key.length > MAX_LESSON_ID_LENGTH) return null;
+    const review = cloneReview(raw);
+    if (!review) return null;
+    cleanReviews[key] = review;
+  }
+  const progress: Progress = {
+    xp,
+    solved: cleanSolved,
+    awarded: [...awarded],
+    activity: [...activity],
+    reviews: cleanReviews,
+    theme:
+      typeof theme === "string" &&
+      PROGRESS_THEMES.some((known) => known === theme)
+        ? theme
+        : emptyProgress.theme,
+  };
+  const displayName = optionalText(input.displayName, MAX_NAME_LENGTH);
+  if (displayName !== undefined) progress.displayName = displayName;
+  const initial = optionalText(input.initial, MAX_INITIAL_LENGTH);
+  if (initial !== undefined) progress.initial = initial;
+  const lastLessonId = optionalText(input.lastLessonId, MAX_LESSON_ID_LENGTH);
+  if (lastLessonId !== undefined && !FORBIDDEN_KEYS.has(lastLessonId))
+    progress.lastLessonId = lastLessonId;
+  return progress;
+}
+
+/** Storage stays lenient: unreadable saves recover to a clean slate. */
 export function loadProgress(value: string | null): Progress {
   if (!value) return emptyProgress;
   try {
-    const p = JSON.parse(value);
-    if (
-      !p ||
-      !Number.isFinite(p.xp) ||
-      p.xp < 0 ||
-      typeof p.solved !== "object" ||
-      !p.solved ||
-      !Object.values(p.solved).every(
-        (v) => Number.isSafeInteger(v) && Number(v) >= 0,
-      ) ||
-      !Array.isArray(p.awarded) ||
-      !p.awarded.every((v: unknown) => typeof v === "string") ||
-      !Array.isArray(p.activity) ||
-      !p.activity.every((v: unknown) => typeof v === "string") ||
-      !p.reviews ||
-      typeof p.reviews !== "object" ||
-      !Object.values(p.reviews).every((v: unknown) => {
-        const r = v as ReviewEntry;
-        return (
-          r &&
-          typeof r.dueAt === "string" &&
-          Number.isFinite(Date.parse(r.dueAt)) &&
-          typeof r.lastReviewedAt === "string" &&
-          Number.isFinite(Date.parse(r.lastReviewedAt)) &&
-          Number.isFinite(r.intervalDays) &&
-          r.intervalDays >= 1 &&
-          Number.isFinite(r.repetitions) &&
-          Number.isFinite(r.ease)
-        );
-      })
-    )
-      return emptyProgress;
-    return {
-      ...emptyProgress,
-      ...p,
-      theme: ["space", "paper", "neon", "matcha", "contrast"].includes(p.theme)
-        ? p.theme
-        : "space",
-    };
+    return sanitizeProgress(JSON.parse(value)) ?? emptyProgress;
   } catch {
     return emptyProgress;
   }

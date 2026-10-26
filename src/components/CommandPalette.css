@@ -1,0 +1,284 @@
+/* CommandPalette — scoped styles, theme-aware via globals.css CSS variables. */
+
+.cp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 18px 30px;
+  background: color-mix(in srgb, var(--bg) 55%, #000);
+  backdrop-filter: blur(8px);
+  animation: cp-fade 0.18s ease-out both;
+}
+
+.cp-dialog {
+  width: min(640px, 100%);
+  max-height: min(70vh, 620px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--panel-solid);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 16px;
+  box-shadow:
+    var(--shadow),
+    0 30px 90px color-mix(in srgb, var(--bg) 65%, #000),
+    0 0 0 1px color-mix(in srgb, var(--accent) 6%, transparent) inset;
+  animation: cp-pop 0.22s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+
+@keyframes cp-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes cp-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --- Search field --------------------------------------------------- */
+
+.cp-field {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+  background:
+    radial-gradient(
+      ellipse at 12% 0%,
+      color-mix(in srgb, var(--accent) 9%, transparent),
+      transparent 60%
+    ),
+    transparent;
+  flex: none;
+}
+
+.cp-field-icon {
+  color: var(--accent);
+  flex: none;
+}
+
+.cp-input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  outline: none;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.cp-input::placeholder {
+  color: var(--muted);
+}
+
+.cp-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.cp-close:hover,
+.cp-close:focus-visible {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-wash);
+}
+
+/* --- Results -------------------------------------------------------- */
+
+.cp-results {
+  flex: 1;
+  min-height: 90px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px;
+}
+
+.cp-group {
+  margin: 12px 6px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--accent);
+}
+
+.cp-row:first-child .cp-group {
+  margin-top: 4px;
+}
+
+.cp-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease;
+}
+
+.cp-item.is-active {
+  background: var(--accent-wash);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+  color: var(--text);
+}
+
+.cp-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.cp-item-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+.cp-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-item-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-item-meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cp-item-kind {
+  flex: none;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+
+/* --- Status & footer ------------------------------------------------ */
+
+.cp-status {
+  padding: 22px 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cp-count {
+  flex: none;
+  padding: 9px 20px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+}
+
+.cp-footer {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 9px 20px;
+  border-top: 1px solid var(--line);
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.cp-footer kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-right: 4px;
+  padding: 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  font-family: inherit;
+  font-size: 9px;
+  color: var(--text);
+}
+
+/* --- Responsive ----------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .cp-backdrop {
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .cp-dialog {
+    width: 100%;
+    max-height: none;
+    height: 100%;
+    border-radius: 0;
+    border: 0;
+    animation: cp-fade 0.16s ease-out both;
+  }
+
+  .cp-footer {
+    display: none;
+  }
+}
+
+/* --- Reduced motion ------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-backdrop,
+  .cp-dialog {
+    animation: none;
+  }
+
+  .cp-item,
+  .cp-close {
+    transition: none;
+  }
+}

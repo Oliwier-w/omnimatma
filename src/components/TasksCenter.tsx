@@ -115,19 +115,21 @@ function drawSeed(previous?: number): number {
 export default function TasksCenter({
   lessons,
   onSolved,
+  initialTopicId,
 }: {
   lessons: Lesson[];
   onSolved: (problemId: string, difficulty: number) => boolean;
+  initialTopicId?: string;
 }) {
   const catalog = useMemo(() => buildMasterCatalog(lessons), [lessons]);
-  const initialTopic = catalog[0];
+  const initialTopic = catalog.find((topic) => topic.lessonId === initialTopicId) ?? catalog[0];
   const [round, setRound] = useState<Round | null>(() =>
     initialTopic ? createRound(initialTopic, 1, 20261025) : null,
   );
   const [activeTopicId, setActiveTopicId] = useState(initialTopic?.id ?? "");
   const [level, setLevel] = useState<MasterLevel | "all">("all");
   const [category, setCategory] = useState("all");
-  const [topicChoice, setTopicChoice] = useState("all");
+  const [topicChoice, setTopicChoice] = useState(initialTopicId ? initialTopic?.id ?? "all" : "all");
   const [difficulty, setDifficulty] = useState<MasterDifficulty>(1);
   const [mode, setMode] = useState<Mode>("single");
   const [seriesDone, setSeriesDone] = useState(0);

@@ -26,6 +26,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pl" suppressHydrationWarning>
+      <head>
+        <script id="omnimatma-theme-init" dangerouslySetInnerHTML={{ __html: `(function(){try{var p=JSON.parse(localStorage.getItem('omnimatma-v1')||'null');if(p&&['space','paper','neon','matcha','contrast'].includes(p.theme))document.documentElement.dataset.theme=p.theme}catch(e){}})()` }} />
+      </head>
       <body>
         {children}
         <PwaRegister />

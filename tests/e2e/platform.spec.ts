@@ -110,7 +110,7 @@ test("search, keyboard focus, theme persistence and actual skill edges", async (
   await page
     .getByRole("textbox", { name: "Szukaj tematu" })
     .fill("Dodawanie macierzy");
-  await page.getByRole("button", { name: /Dodawanie macierzy/ }).click();
+  await page.getByRole("button", { name: "Dodawanie macierzy", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Dodawanie macierzy", exact: true }),
   ).toBeVisible();

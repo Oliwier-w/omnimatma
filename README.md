@@ -27,6 +27,9 @@ Zatrzymaj `dev` przed `build` — oba korzystają z `.next`. Testy E2E uruchamia
 ## Co działa
 
 - Responsywny dashboard Bento/Glass, nawigacja, wyszukiwarka Ctrl/Cmd+K, pięć motywów, ograniczenie animacji zgodnie z preferencją systemową.
+- Dashboard jest widoczny od pierwszego HTML, również bez JavaScriptu: menu, trzy poziomy nauki, sześć kierunków i podgląd perspektyw. Suwak promienia 1–10 zmienia okrąg SVG; Metafora / Przepis / Obraz / Definicja przełączają wyjaśnienie ułamka bez opuszczania strony.
+- Wyszukiwarka w headerze obejmuje lekcje, ich generatory i narzędzia laboratorium. Strzałki i Enter wybierają wynik; wynik generatora otwiera konkretny podtemat, a wynik narzędzia właściwą zakładkę.
+- Awatar otwiera profil: imię, inicjał, motywy, eksport/import postępów JSON i reset z potwierdzeniem. Import najpierw waliduje plik i pokazuje podgląd; niepoprawny plik nie nadpisuje danych. Karta powrotu przy XP > 0 otwiera ostatnio odwiedzoną lekcję.
 - 60 mikro-lekcji w sześciu działach: ułamki zwykłe, macierze, liczby zespolone oraz trzy ścieżki maturalne (liczby i algebra, funkcje i ciągi, geometria i dane). Każda: ELI5, tryb szkolny, wizualny i akademicki, przykład, pułapki, generator z 5 poziomami, podpowiedzi i rozwiązanie.
 - Interaktywne modele ułamka, indeksów macierzy i płaszczyzny Gaussa. To modele podstawowe wspólne dla działu; opis konkretnej operacji znajduje się w notatce. Lekcje maturalne mają opis wizualny w treści, bez podstawiania niepasującego widgetu z innego działu.
 - Proceduralne losowanie, sprawdzanie wartości, wymuszanie postaci skróconej tam, gdzie wymaga jej zadanie, klawiatura matematyczna i brudnopis.
@@ -49,7 +52,7 @@ Zatrzymaj `dev` przed `build` — oba korzystają z `.next`. Testy E2E uruchamia
 
 **„Nieskończone” oznacza brak limitu losowań**, nie matematycznie nieskończony zbiór w obrębie poziomu. Parametry są ograniczone; zadania mogą się powtarzać. Poziomy 4–5 macierzy obejmują również 3×3; szczegółowe notatki o wyznacznikach i odwrotności uczą na 2×2, a hinty wyjaśniają rozwinięcie przez dopełnienia. W przyszłości potrzebne są odrębne lekcje metod 3×3.
 
-**Pamięć jest lokalna.** `localStorage` przechowuje postęp i motyw tylko w tej przeglądarce; brak kont, synchronizacji między urządzeniami i backendu. Wyczyszczenie danych przeglądarki usuwa postęp. Powtórki: pierwszy sukces za 1 dzień, drugi udany dzień za 3, kolejne odstępy rosną do roku; błędna odpowiedź resetuje odstęp do dnia. Wiele zadań tego samego dnia nie przyspiesza harmonogramu. Wyniki egzaminów są sesyjne i nie przyznają XP.
+**Pamięć jest lokalna, backup jest przenośny.** `localStorage` przechowuje postęp, profil i motyw tylko w tej przeglądarce; brak kont, automatycznej synchronizacji i backendu. Przed wyczyszczeniem danych lub zmianą urządzenia wybierz awatar → „Eksportuj postępy (.json)”; na drugim urządzeniu wybierz „Importuj postępy” i potwierdź zastąpienie. Backup obejmuje XP, rozwiązane zadania, historię przyznanego XP, dni aktywności, powtórki, profil, motyw i ostatnią lekcję — nie sesyjne notatki/rysunki ani wyniki egzaminów. Powtórki: pierwszy sukces za 1 dzień, drugi udany dzień za 3, kolejne odstępy rosną do roku; błędna odpowiedź resetuje odstęp do dnia. Wiele zadań tego samego dnia nie przyspiesza harmonogramu. Wyniki egzaminów są sesyjne i nie przyznają XP.
 
 **Offline wymaga pierwszego uruchomienia online w produkcji.** Poczekaj na instalację service workera i pobranie zasobów; dopiero wtedy aplikacja i zawarte w niej lekcje działają bez sieci. Nieukończona instalacja może pokazać jedynie ekran offline. W trybie developerskim SW jest wyłączony. Aktualizacje treści wymagają połączenia i ponownego builda; przeglądarka może usunąć cache.
 
@@ -79,13 +82,12 @@ Notatki są czytane po stronie serwera podczas builda. **Vercel nie czyta Twojeg
 
 ## GitHub i Vercel
 
-Repozytorium Git jest zainicjowane lokalnie na `main`; nie utworzono zdalnego repo ani deploymentu.
+Repozytorium: https://github.com/Oliwier-w/omnimatma. Produkcja: https://omnimatma.vercel.app. Push na `main` uruchamia wdrożenie przez integrację Vercel z GitHubem.
 
 ```powershell
 git add .
-git commit -m "Initial commit: OmniMatma app ready"
-git remote add origin https://github.com/TWOJ_LOGIN/omnimatma.git
-git push -u origin main
+git commit -m "Update OmniMatma"
+git push origin main
 ```
 
 W Vercel wybierz **Import Git Repository → Next.js**, katalog główny repo, Node.js 24.x, build `npm run build`. Nie są wymagane zmienne środowiskowe. `.obsidian`, prywatny inbox, `node_modules` i `.next` są ignorowane. Przed publikacją sprawdź treści edukacyjne; jest to autorski starter, nie certyfikowany kurs.
