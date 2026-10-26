@@ -530,7 +530,7 @@ textarea.field {
   background: var(--line);
   margin: 23px 12px;
 }
-.track-nav button {
+.track-nav :is(button, a) {
   display: flex;
   width: 100%;
   align-items: center;
@@ -540,11 +540,11 @@ textarea.field {
   color: var(--muted);
   text-align: left;
 }
-.track-nav button svg {
+.track-nav :is(button, a) svg {
   margin-left: auto;
   opacity: 0.5;
 }
-.track-nav button:hover {
+.track-nav :is(button, a):hover {
   color: var(--text);
 }
 .sidebar-bottom {
@@ -2040,7 +2040,7 @@ main {
   .nav-label {
     font-size: 7px;
   }
-  .track-nav button {
+  .track-nav :is(button, a) {
     font-size: 10px;
     gap: 8px;
   }

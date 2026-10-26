@@ -50,6 +50,14 @@ export function matrixProblem(
           : x,
       ),
     );
+  if (id === "matrix-inverse" && level <= 3) {
+    // Choose a small integral inverse first. This shear product has det = 1
+    // (or -1 after swapping rows), so no accidental large prime denominator.
+    const u = rng(1, level + 1), v = rng(1, level + 1);
+    const inverse = [[1 + u * v, -u], [-v, 1]];
+    a = [[inverse[1][1], -inverse[0][1]], [-inverse[1][0], inverse[0][0]]];
+    if (level >= 2 && rng(0, 1)) a = [a[1], a[0]];
+  }
   if (id === "matrix-transpose" && level >= 3) a = create(size, size + 1);
   const A = mat(a),
     B = mat(b);
@@ -196,5 +204,9 @@ export function matrixProblem(
     );
     problem.latex = `A=\\begin{bmatrix}${a.map((row) => row.join("&")).join("\\\\")}\\end{bmatrix},\\quad a_{${indices[0]}${indices[1]}}=?`;
   }
+  if (id === "matrix-det" && size === 2) problem.mistakes = [
+    { answer: String(-determinant(a)), message: "Odwrócono znak wyznacznika. Dla macierzy 2×2 odejmujemy iloczyn drugiej przekątnej od pierwszej: det(A)=ad−bc, a nie bc−ad." },
+    { answer: String(a[0][0] * a[1][1] + a[0][1] * a[1][0]), message: "Dodano iloczyny przekątnych. Wyznacznik macierzy 2×2 jest różnicą ad−bc, nie sumą ad+bc; znak minus wynika z naprzemiennych znaków w rozwinięciu wyznacznika." },
+  ];
   return problem;
 }

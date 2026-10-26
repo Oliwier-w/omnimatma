@@ -1,0 +1,75 @@
+.formula-xray {
+  min-width: 0;
+  color: var(--text);
+}
+.formula-xray > .math-block { max-width: 100%; overflow-x: auto; }
+.formula-xray-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin-top: 12px;
+}
+.formula-xray-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 13px;
+  min-height: 44px;
+  background: var(--panel-solid);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.formula-xray-switch:hover { border-color: var(--accent); }
+.formula-xray-switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.formula-xray-switch[aria-checked="true"] { border-color: var(--accent); box-shadow: 0 0 18px var(--accent-wash); }
+.formula-xray-track {
+  display: inline-flex;
+  align-items: center;
+  width: 28px;
+  height: 17px;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 2px;
+  background: var(--bg);
+}
+.formula-xray-track > span {
+  width: 11px;
+  height: 11px;
+  background: var(--muted);
+  border-radius: 50%;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1), background 180ms ease;
+}
+.formula-xray-switch[aria-checked="true"] .formula-xray-track > span { transform: translateX(11px); background: var(--accent); }
+.formula-xray-state, .formula-xray-hint { font-size: 11px; color: var(--muted); }
+.formula-xray-legend:not([hidden]) {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+  animation: formula-xray-reveal 180ms ease-out;
+}
+.formula-xray-legend ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.formula-xray-legend li { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.formula-xray-chip { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 3px 8px; border: 1px solid var(--line); border-radius: 8px; font-family: "JetBrains Mono", monospace; font-size: 12px; background: var(--bg); color: var(--text); }
+.formula-xray-chip > span { width: 8px; height: 8px; border-radius: 50%; background: var(--xray-color); box-shadow: 0 0 0 1px var(--line); }
+.formula-xray-description, .formula-xray-empty { font-size: 12px; line-height: 1.65; color: var(--text); overflow-wrap: anywhere; }
+.formula-xray-empty { margin: 0; }
+/* Keep the fixed KaTeX palette legible on both deep-space and paper backgrounds. */
+.formula-xray[data-enabled="true"] .katex [style*="color:"] { text-shadow: 0 0 1px currentColor; }
+:root[data-theme="paper"] .formula-xray[data-enabled="true"] .katex [style*="color:"],
+:root[data-theme="paper"] .formula-xray-chip > span { filter: brightness(.63) saturate(1.15); text-shadow: none; }
+:root[data-theme="contrast"] .formula-xray[data-enabled="true"] .katex [style*="color:"],
+:root[data-theme="contrast"] .formula-xray-chip > span { filter: brightness(1.5); }
+@keyframes formula-xray-reveal { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 480px) { .formula-xray-hint { flex-basis: 100%; } .formula-xray-legend:not([hidden]) { padding: 12px; } }
+@media (prefers-reduced-motion: reduce) { .formula-xray *, .formula-xray-legend:not([hidden]) { animation: none; transition: none; } }

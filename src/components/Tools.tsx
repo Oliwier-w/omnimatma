@@ -3,6 +3,8 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import katex from "katex";
 import type { Lesson } from "@/lib/lesson";
+import SymbolTranslator from "./SymbolTranslator";
+import FormulaXray from "./FormulaXray";
 import { generateProblem, checkProblemAnswer } from "@/generators";
 
 /** Only KaTeX-generated, trust-disabled markup is inserted into the document. */
@@ -123,6 +125,7 @@ function FormulaSheets({ lessons }: { lessons: Lesson[] }) {
                 <p className="muted">Pokaż przykład ↗</p>
               </summary>
               <div>
+                <FormulaXray formula={formula.formula} title={formula.title} />
                 <MathText expression={formula.example} />
                 <p className="muted">{formula.note}</p>
               </div>
@@ -138,9 +141,7 @@ function FormulaSheets({ lessons }: { lessons: Lesson[] }) {
               .map((lesson) => (
                 <article className="formula-card" key={lesson.id}>
                   <h3>{lesson.title}</h3>
-                  <MathText
-                    expression={lesson.formula.replace(/^\$\$?|\$\$?$/g, "")}
-                  />
+                  <FormulaXray formula={lesson.formula.replace(/^\$\$?|\$\$?$/g, "")} topicId={lesson.generatorId} title={lesson.title} />
                 </article>
               ))}
           </div>
@@ -778,7 +779,7 @@ function ExamLab({ lessons }: { lessons: Lesson[] }) {
   );
 }
 
-export default function Tools({ lessons, initialTab = "formula", navigationKey = 0 }: { lessons: Lesson[]; initialTab?: "formula" | "matrix" | "graph" | "exam"; navigationKey?: number }) {
+export default function Tools({ lessons, initialTab = "formula", navigationKey = 0 }: { lessons: Lesson[]; initialTab?: "formula" | "matrix" | "graph" | "exam" | "symbols"; navigationKey?: number }) {
   const [tab, setTab] = useState<string>(initialTab);
   useEffect(() => setTab(initialTab), [initialTab, navigationKey]);
   const id = useId();
@@ -787,6 +788,7 @@ export default function Tools({ lessons, initialTab = "formula", navigationKey =
     ["matrix", "Macierze"],
     ["graph", "Wykres funkcji"],
     ["exam", "Symulator egzaminu"],
+    ["symbols", "Tłumacz symboli"],
   ];
   return (
     <section className="tools-content">
@@ -826,6 +828,8 @@ export default function Tools({ lessons, initialTab = "formula", navigationKey =
             <MatrixLab />
           ) : value === "graph" ? (
             <GraphLab />
+          ) : value === "symbols" ? (
+            <SymbolTranslator />
           ) : (
             <ExamLab lessons={lessons} />
           )}

@@ -35,6 +35,7 @@ export function maturaLiczbyProblem(
   let expressions: string[] = [];
   let explanations: string[] = [];
   let hints: string[] = [];
+  let mistakes: Problem["mistakes"];
 
   switch (id) {
     case "matura-liczby-pierwiastki": {
@@ -320,6 +321,10 @@ export function maturaLiczbyProblem(
     }
 
     case "matura-liczby-wzory-skrocone": {
+      mistakes = [{
+        answer: "0",
+        message: "Pominięto wyraz mieszany 2ab. Kwadrat sumy to (a+b)²=a²+2ab+b², a kwadrat różnicy to (a−b)²=a²−2ab+b². Po odjęciu zostaje 4ab, nie zero — także dla a=π lub a=√2.",
+      }];
       if (level === 1 || level === 2) {
         const b = level === 1 ? rng(1, 10) : rng(11, 20);
         const left = level === 1 ? `(π + b)` : `(b + π)`;
@@ -708,13 +713,13 @@ export function maturaLiczbyProblem(
         const bCoef = c - 2 * a;
         const constant = -a * c;
         answer = String(c);
-        prompt = `Uprość wyrażenie (2x^2 ${signedTerm(bCoef, "x")} ${signedTerm(constant)})/(x − ${a}), a następnie podaj współczynnik przy x otrzymanego dwumianu (dla x ≠ ${a}).`;
+        prompt = `Uprość wyrażenie (2x^2 ${signedTerm(bCoef, "x")} ${signedTerm(constant)})/(x − ${a}), a następnie podaj wyraz wolny otrzymanego dwumianu (dla x ≠ ${a}).`;
         latex = `\\frac{2x^2${bCoef >= 0 ? "+" : "-"}${Math.abs(bCoef)}x${constant >= 0 ? "+" : "-"}${Math.abs(constant)}}{x-${a}}`;
         expressions = [`${c}`, `${c}`, answer];
         explanations = [
           `Dzielimy 2x^2 przez x, otrzymując 2x; mnożymy (x−${a})·2x i odejmujemy od licznika.`,
           `Reszta daje składnik ${c}, więc iloraz to 2x+${c}.`,
-          `Współczynnik przy x w otrzymanym dwumianie wynosi ${c}.`,
+          `Wyraz wolny otrzymanego dwumianu 2x+${c} wynosi ${c}; współczynnik przy x to 2.`,
         ];
         hints = [
           "Wykonaj dzielenie wielomianów albo sprawdź, jaki dwumian pomnożony przez x−a daje licznik.",
@@ -949,5 +954,6 @@ export function maturaLiczbyProblem(
     hints,
   );
   problem.latex = latex;
+  if (mistakes) problem.mistakes = mistakes;
   return problem;
 }

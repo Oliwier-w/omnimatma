@@ -1,0 +1,54 @@
+.sm-bar {
+  min-width: 0;
+  padding: clamp(18px, 3vw, 28px);
+  color: var(--text);
+  background: linear-gradient(130deg, var(--accent-wash), transparent 65%), var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius, 17px);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+}
+.sm-bar .sm-heading { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 18px; font-weight: 650; font-size: .9rem; }
+.sm-bar .sm-badge { color: var(--accent); font-size: 1.3rem; }
+.sm-bar .sm-tag { margin-left: auto; font-size: .72rem; color: var(--muted); font-weight: 400; }
+.sm-bar .sm-form label { display: block; margin-bottom: 9px; font-weight: 650; }
+.sm-bar .sm-input-row { position: relative; display: flex; align-items: center; }
+.sm-bar .sm-input-row input { box-sizing: border-box; width: 100%; min-width: 0; padding: 15px 45px 15px 15px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; font: inherit; font-size: 1rem; transition: border-color .18s, box-shadow .18s; }
+.sm-bar .sm-input-row input::placeholder { color: var(--muted); opacity: 1; font-size: .85rem; }
+.sm-bar .sm-input-row input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-wash); }
+.sm-bar button, .sm-bar summary { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+.sm-bar button { font: inherit; transition: background .18s, transform .18s; }
+.sm-bar button:focus-visible, .sm-bar summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.sm-bar button:active { transform: scale(.98); }
+.sm-bar .sm-clear { position: absolute; right: 3px; width: 42px; height: 44px; color: var(--muted); background: transparent; border: 0; font-size: 1.5rem; }
+.sm-bar .sm-help { margin: 10px 0; color: var(--muted); font-size: .78rem; line-height: 1.65; }
+.sm-bar .sm-examples { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--muted); font-size: .78rem; }
+.sm-bar .sm-examples button, .sm-bar .sm-secondary { padding: 9px 11px; min-height: 40px; color: var(--accent); background: var(--accent-wash); border: 1px solid var(--line); border-radius: 9px; overflow-wrap: anywhere; }
+.sm-bar .sm-examples button { font-family: "JetBrains Mono", monospace; }
+.sm-bar .sm-examples button:hover, .sm-bar .sm-secondary:hover { border-color: var(--accent); }
+.sm-bar .sm-answer { display: flex; gap: 12px; flex-wrap: wrap; align-items: baseline; margin: 18px 0 12px; }
+.sm-bar .sm-answer span { font-size: .8rem; color: var(--muted); }
+.sm-bar .sm-answer strong { min-width: 0; color: var(--green); font-size: clamp(1.15rem, 3vw, 1.7rem); overflow-wrap: anywhere; }
+.sm-bar .sm-error { padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--peach); font-size: .85rem; line-height: 1.65; overflow-wrap: anywhere; }
+.sm-bar .sm-details { border-top: 1px solid var(--line); }
+.sm-bar .sm-details summary { padding: 15px 0; color: var(--accent); font-size: .85rem; }
+.sm-bar .sm-details summary span { float: right; }
+.sm-bar .sm-details ol { margin: 0 0 18px; padding-left: 24px; }
+.sm-bar .sm-details li { padding: 7px 0 7px 6px; }
+.sm-bar .sm-details li::marker { color: var(--accent); }
+.sm-bar .sm-details h4 { margin: 0 0 8px; font-size: .88rem; }
+.sm-bar .sm-details code { display: block; padding: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow-wrap: anywhere; white-space: pre-wrap; font-family: "JetBrains Mono", monospace; font-size: .85rem; }
+.sm-bar .sm-details p { margin: 8px 0; color: var(--muted); font-size: .82rem; line-height: 1.7; overflow-wrap: anywhere; }
+.sm-bar .sm-practice { min-height: 46px; width: 100%; padding: 12px 16px; border: 1px solid var(--accent); border-radius: 10px; color: var(--text); background: var(--accent-wash); font-weight: 650; font-size: .85rem; }
+.sm-bar .sm-practice:hover { background: var(--panel-solid); }
+.sm-bar.sm-compact { padding: 16px; }
+.sm-bar.sm-compact .sm-tag { display: none; }
+@media (max-width: 480px) {
+  .sm-bar .sm-tag { width: 100%; margin-left: 0; }
+  .sm-bar .sm-input-row input::placeholder { font-size: .7rem; }
+  .sm-bar .sm-heading { margin-bottom: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sm-bar button, .sm-bar .sm-input-row input { transition: none; }
+  .sm-bar button:active { transform: none; }
+}

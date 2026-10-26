@@ -1,0 +1,216 @@
+export interface MathSymbol {
+  id: string;
+  symbol: string;
+  reading: string;
+  meaning: string;
+  example: string;
+  exampleExplanation: string;
+  category: string;
+}
+
+/** Plain, deterministic data; examples are KaTeX without dollar delimiters. */
+export const MATH_SYMBOLS: readonly MathSymbol[] = [
+  {
+    id: "sum", symbol: "∑", category: "Działania",
+    reading: "Suma; suma po k od jeden do trzy.",
+    meaning: "Dodaj kolejne składniki. Dolny i górny indeks mówią, od której do której wartości licznika liczymy.",
+    example: String.raw`\sum_{k=1}^{3}k=1+2+3=6`,
+    exampleExplanation: "Podstaw za k kolejno 1, 2 i 3. Dodanie tych trzech liczb daje 6.",
+  },
+  {
+    id: "product", symbol: "∏", category: "Działania",
+    reading: "Iloczyn; iloczyn po k od jeden do trzy.",
+    meaning: "Pomnóż kolejne czynniki zamiast je dodawać. Indeksy wyznaczają wartości licznika.",
+    example: String.raw`\prod_{k=1}^{3}k=1\cdot2\cdot3=6`,
+    exampleExplanation: "Mnożymy 1 razy 2 razy 3, więc otrzymujemy 6.",
+  },
+  {
+    id: "forall", symbol: "∀", category: "Logika",
+    reading: "Dla każdego; dla każdej liczby x ze zbioru.",
+    meaning: "Zdanie musi działać dla każdego elementu wskazanego zbioru, bez wyjątków.",
+    example: String.raw`\forall x\in\{1,2,3\}:x<4`,
+    exampleExplanation: "Każda z liczb 1, 2 i 3 jest mniejsza od 4. Sprawdzamy wszystkie trzy.",
+  },
+  {
+    id: "exists", symbol: "∃", category: "Logika",
+    reading: "Istnieje; istnieje takie x, że…",
+    meaning: "Wystarczy znaleźć przynajmniej jeden pasujący element. Nie musi być jedyny.",
+    example: String.raw`\exists x\in\{1,2,3\}:x+1=3`,
+    exampleExplanation: "Liczba 2 pasuje, bo 2 + 1 = 3. Jeden taki przykład wystarcza.",
+  },
+  {
+    id: "belongs", symbol: "∈", category: "Zbiory",
+    reading: "Należy do; dwa należy do zbioru jeden, dwa, trzy.",
+    meaning: "Liczba lub inny obiekt jest jednym z elementów zbioru, jak klocek w pudełku.",
+    example: String.raw`2\in\{1,2,3\}`,
+    exampleExplanation: "Na liście elementów zbioru znajduje się liczba 2.",
+  },
+  {
+    id: "strict-subset", symbol: "⊂", category: "Zbiory",
+    reading: "Jest podzbiorem właściwym; jest ściśle zawarty w.",
+    meaning: "Tutaj ⊂ oznacza podzbiór właściwy: wszystkie elementy pierwszego zbioru są w drugim, ale zbiory nie są równe. Symbol ⊆ dopuszcza równość. Uwaga: niektóre podręczniki używają ⊂ także z dopuszczeniem równości — sprawdź ich konwencję.",
+    example: String.raw`\{1,2\}\subsetneq\{1,2,3\}`,
+    exampleExplanation: "Liczby 1 i 2 są w większym zbiorze, lecz jest w nim jeszcze 3. Dlatego zbiory są różne; ⊊ zapisuje tę ścisłość jednoznacznie.",
+  },
+  {
+    id: "implies", symbol: "⇒", category: "Logika",
+    reading: "Wynika; jeżeli…, to…",
+    meaning: "Gdy warunek po lewej jest prawdziwy, musi zachodzić wniosek po prawej. To nie obiecuje działania w drugą stronę.",
+    example: String.raw`x=2\Rightarrow x^2=4`,
+    exampleExplanation: "Jeśli x to 2, jego kwadrat to 4. Odwrotnie nie zawsze: także (−2)² = 4.",
+  },
+  {
+    id: "iff", symbol: "⇔", category: "Logika",
+    reading: "Wtedy i tylko wtedy, gdy; jest równoważne.",
+    meaning: "Dwa zdania wynikają z siebie nawzajem. Możesz przejść w obie strony bez utraty rozwiązań.",
+    example: String.raw`x+1=3\Leftrightarrow x=2`,
+    exampleExplanation: "Odjęcie 1 od obu stron daje x = 2; dodanie 1 pozwala wrócić do 2 + 1 = 3.",
+  },
+  {
+    id: "determinant", symbol: "det(A)", category: "Macierze",
+    reading: "Wyznacznik macierzy A.",
+    meaning: "Liczba obliczana z macierzy kwadratowej. Dla tabelki dwa na dwa mnożymy po przekątnych i odejmujemy drugi iloczyn od pierwszego.",
+    example: String.raw`\det\begin{pmatrix}1&2\\3&4\end{pmatrix}=1\cdot4-2\cdot3=-2`,
+    exampleExplanation: "Pierwsza przekątna daje 4, druga 6. Wyznacznik to 4 − 6 = −2.",
+  },
+  {
+    id: "transpose", symbol: "A^T", category: "Macierze",
+    reading: "A transponowane; transpozycja macierzy A.",
+    meaning: "Zamień wiersze tabelki w kolumny. To nie jest potęgowanie macierzy.",
+    example: String.raw`\begin{pmatrix}1&2\\3&4\end{pmatrix}^{T}=\begin{pmatrix}1&3\\2&4\end{pmatrix}`,
+    exampleExplanation: "Wiersz 1, 2 staje się pierwszą kolumną, a wiersz 3, 4 drugą kolumną.",
+  },
+  {
+    id: "imaginary-unit", symbol: "i", category: "Liczby zespolone",
+    reading: "I; jednostka urojona.",
+    meaning: "Nowa jednostka liczbowa, której kwadrat wynosi −1. Nie jest liczbą rzeczywistą.",
+    example: String.raw`i^2=-1,\qquad(2i)^2=-4`,
+    exampleExplanation: "Kwadrat 2i to 4 razy i², czyli 4 razy −1 = −4.",
+  },
+  {
+    id: "conjugate", symbol: "z̄", category: "Liczby zespolone",
+    reading: "Z z kreską; sprzężenie liczby z.",
+    meaning: "Dla liczby zespolonej zmień znak części urojonej, pozostawiając część rzeczywistą bez zmian.",
+    example: String.raw`z=2+3i\quad\Rightarrow\quad\overline{z}=2-3i`,
+    exampleExplanation: "Dwójka zostaje, a współczynnik 3 przy i zmienia się na −3.",
+  },
+  {
+    id: "variance", symbol: "σ²", category: "Statystyka",
+    reading: "Sigma kwadrat; wariancja populacji.",
+    meaning: "Mierzy rozrzut danych: uśredniamy kwadraty odległości od średniej. Tutaj liczymy wariancję całej populacji i dzielimy przez N, nie przez N − 1 jak w nieobciążonym estymatorze z próby.",
+    example: String.raw`\mu=2,\qquad\sigma^2=\frac{(1-2)^2+(3-2)^2}{2}=1`,
+    exampleExplanation: "Populacja to 1 i 3. Średnia wynosi 2, oba kwadraty odległości wynoszą 1; (1 + 1) / 2 = 1.",
+  },
+  {
+    id: "mean", symbol: "μ", category: "Statystyka",
+    reading: "Mi; średnia populacji.",
+    meaning: "Średnia całej badanej grupy: dodaj wszystkie wartości i podziel przez ich liczbę. Jak równy podział cukierków.",
+    example: String.raw`\mu=\frac{1+2+6}{3}=3`,
+    exampleExplanation: "Trzy wartości dają łącznie 9. Po równym podziale na 3 otrzymujemy średnią 3.",
+  },
+  {
+    id: "limit", symbol: "lim", category: "Analiza",
+    reading: "Granica; granica jeden przez n, gdy n dąży do nieskończoności, wynosi zero.",
+    meaning: "Opisuje wartość, do której zbliżają się wyrazy ciągu lub wartości funkcji. Nie muszą jej nigdy osiągnąć.",
+    example: String.raw`\lim_{n\to\infty}\frac{1}{n}=0`,
+    exampleExplanation: "Dla n = 10, 100, 1000 otrzymujemy 0,1; 0,01; 0,001. Możemy zbliżyć się do 0 dowolnie mocno, choć 1/n jest dodatnie.",
+  },
+  {
+    id: "integral", symbol: "∫", category: "Analiza",
+    reading: "Całka; całka od zera do jeden z dwa x po x.",
+    meaning: "Całka oznaczona sumuje bardzo małe wkłady. Dla funkcji nieujemnej daje pole pod wykresem; fragmenty poniżej osi liczą się ze znakiem minus.",
+    example: String.raw`\int_0^1 2x\,dx=\left[x^2\right]_0^1=1`,
+    exampleExplanation: "Pod wykresem y = 2x od 0 do 1 leży trójkąt: podstawa 1, wysokość 2. Jego pole to 1 · 2 / 2 = 1.",
+  },
+  {
+    id: "infinity", symbol: "∞", category: "Analiza",
+    reading: "Nieskończoność; dąży do nieskończoności.",
+    meaning: "Oznacza nieograniczony wzrost, a nie największą liczbę. Nieskończoność nie jest liczbą rzeczywistą i nie liczymy z nią jak ze zwykłą liczbą.",
+    example: String.raw`n\to\infty\quad\Rightarrow\quad n+1\to\infty`,
+    exampleExplanation: "Dla n = 10, 100, 1000 wartości n + 1 to 11, 101, 1001. Przekroczą dowolny ustalony próg, gdy n będzie dostatecznie duże.",
+  },
+  {
+    id: "equals", symbol: "=", category: "Porównania",
+    reading: "Równa się; jest równe.",
+    meaning: "Po obu stronach jest ta sama wartość, nawet jeśli zapisano ją inaczej.",
+    example: "2+3=5",
+    exampleExplanation: "Dwa klocki i trzy klocki to razem pięć klocków.",
+  },
+  {
+    id: "not-equal", symbol: "≠", category: "Porównania",
+    reading: "Nie równa się; jest różne od.",
+    meaning: "Wartości po obu stronach nie są takie same.",
+    example: String.raw`2+3\ne6`,
+    exampleExplanation: "2 + 3 daje 5, a 5 to nie 6.",
+  },
+  {
+    id: "less", symbol: "<", category: "Porównania",
+    reading: "Jest mniejsze od.",
+    meaning: "Lewa liczba jest mniejsza od prawej. Równe liczby nie spełniają tego warunku.",
+    example: "2<5",
+    exampleExplanation: "Dwa klocki to mniej niż pięć; 2 leży na osi na lewo od 5.",
+  },
+  {
+    id: "greater", symbol: ">", category: "Porównania",
+    reading: "Jest większe od.",
+    meaning: "Lewa liczba jest większa od prawej. Szersza strona znaku wskazuje większą wartość.",
+    example: "5>2",
+    exampleExplanation: "Pięć klocków to więcej niż dwa; 5 leży na osi na prawo od 2.",
+  },
+  {
+    id: "less-equal", symbol: "≤", category: "Porównania",
+    reading: "Jest mniejsze lub równe.",
+    meaning: "Lewa wartość może być mniejsza albo dokładnie taka sama. Obie możliwości są dozwolone.",
+    example: String.raw`2\le3,\qquad3\le3`,
+    exampleExplanation: "2 jest mniejsze od 3, a 3 jest równe 3. Oba zapisy są prawdziwe.",
+  },
+  {
+    id: "greater-equal", symbol: "≥", category: "Porównania",
+    reading: "Jest większe lub równe.",
+    meaning: "Lewa wartość może być większa albo dokładnie taka sama.",
+    example: String.raw`4\ge3,\qquad3\ge3`,
+    exampleExplanation: "4 jest większe od 3. Równość 3 i 3 też pasuje do znaku ≥.",
+  },
+  {
+    id: "plus-minus", symbol: "±", category: "Działania",
+    reading: "Plus minus.",
+    meaning: "Skrót dwóch możliwości: raz wybierz plus, a drugi raz minus.",
+    example: String.raw`x=\pm2\quad\Leftrightarrow\quad x=2\ \text{lub}\ x=-2`,
+    exampleExplanation: "Są dwie wartości x: 2 oraz −2. Obie mają kwadrat równy 4.",
+  },
+  {
+    id: "root", symbol: "√", category: "Działania",
+    reading: "Pierwiastek kwadratowy z.",
+    meaning: "Dla nieujemnej liczby szukamy nieujemnej liczby, której kwadrat daje liczbę pod znakiem. Sam znak √ nie oznacza plus minus.",
+    example: String.raw`\sqrt{9}=3`,
+    exampleExplanation: "3 · 3 = 9, więc √9 = 3, nie −3. Równanie x² = 9 ma natomiast dwa rozwiązania: 3 i −3.",
+  },
+  {
+    id: "pi", symbol: "π", category: "Geometria",
+    reading: "Pi.",
+    meaning: "Stały stosunek obwodu koła do jego średnicy. W przybliżeniu 3,14159, ale zapis dziesiętny nigdy się nie kończy ani nie powtarza okresowo.",
+    example: String.raw`r=1\quad\Rightarrow\quad P=\pi r^2=\pi\approx3{,}14`,
+    exampleExplanation: "Koło o promieniu 1 ma pole dokładnie π, czyli w przybliżeniu 3,14 jednostki kwadratowej.",
+  },
+  {
+    id: "empty-set", symbol: "∅", category: "Zbiory",
+    reading: "Zbiór pusty.",
+    meaning: "Zbiór bez żadnego elementu, jak puste pudełko. To nie to samo co zbiór zawierający liczbę zero.",
+    example: String.raw`\{1,2\}\cap\{3,4\}=\varnothing`,
+    exampleExplanation: "Zbiory 1, 2 oraz 3, 4 nie mają wspólnej liczby. Ich część wspólna jest pusta, ma 0 elementów.",
+  },
+  {
+    id: "intersection", symbol: "∩", category: "Zbiory",
+    reading: "Część wspólna; przecięcie zbiorów.",
+    meaning: "Weź tylko te elementy, które są jednocześnie w obu zbiorach.",
+    example: String.raw`\{1,2\}\cap\{2,3\}=\{2\}`,
+    exampleExplanation: "Liczba 2 jest na obu listach. Liczby 1 i 3 występują tylko na jednej, więc odpadają.",
+  },
+  {
+    id: "union", symbol: "∪", category: "Zbiory",
+    reading: "Suma zbiorów.",
+    meaning: "Zbierz elementy należące do przynajmniej jednego zbioru. Powtórzeń nie zapisujemy drugi raz.",
+    example: String.raw`\{1,2\}\cup\{2,3\}=\{1,2,3\}`,
+    exampleExplanation: "Łączymy obie listy: 1, 2 i 3. Dwójka pojawia się w wyniku tylko raz, więc mamy 3 elementy.",
+  },
+];

@@ -8,10 +8,21 @@ export function complexProblem(
 ) {
   const limit = level * 3;
   const denom = level === 5 ? rng(2, 5) : 1;
-  const a = rng(level >= 2 ? -limit : 1, limit),
+  let a = rng(level >= 2 ? -limit : 1, limit),
     b = rng(1, limit) * (level >= 3 ? -1 : 1),
     c = rng(1, limit),
     d = rng(level >= 2 ? -limit : 1, limit);
+  if (id === "complex-modulus" && level <= 3) {
+    const scale = rng(2 * level - 1, 2 * level);
+    a = 3 * scale * (a < 0 ? -1 : 1);
+    b = 4 * scale * (b < 0 ? -1 : 1);
+  }
+  if (id === "complex-divide" && level <= 3) {
+    // Select quotient first, then construct the dividend as quotient * divisor.
+    const real = a, imag = b;
+    a = real * c - imag * d;
+    b = real * d + imag * c;
+  }
   const z = complex(fraction(a, denom), fraction(b, denom)),
     w = complex(c, d);
   let prompt = "",

@@ -6,7 +6,7 @@ async function openTasks(page: Page) {
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne", exact: true })
-    .getByRole("button", { name: "Zadania", exact: true })
+    .getByRole("link", { name: "Zadania", exact: true })
     .click();
   await expect(
     page.getByRole("heading", {

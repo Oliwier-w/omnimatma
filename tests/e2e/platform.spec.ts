@@ -6,7 +6,7 @@ async function navigate(page: Page, label: string) {
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne" })
-    .getByRole("button", { name: label, exact: true })
+    .getByRole("link", { name: label, exact: true })
     .click();
 }
 
@@ -139,7 +139,7 @@ test("matrix calculator, graph and configurable exam work", async ({
   await navigate(page, "Laboratorium");
   await page.getByRole("button", { name: "Macierze", exact: true }).click();
   await page.getByRole("button", { name: "det A", exact: true }).click();
-  await expect(page.locator("[role=status]")).toContainText("−2");
+  await expect(page.getByRole("region", { name: "Macierze", exact: true }).getByRole("status")).toContainText("−2");
   await page.getByRole("button", { name: "A⁻¹", exact: true }).click();
   for (const row of [1, 2])
     for (const col of [1, 2])

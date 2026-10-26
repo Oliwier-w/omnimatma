@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, MotionConfig } from "framer-motion";
 import {
   ArrowDown,
   ArrowRight,
   ArrowUpRight,
-  BookOpen,
   ChevronRight,
   Dumbbell,
   Flame,
@@ -42,7 +43,7 @@ import InfinitePractice from "./InfinitePractice";
 import Visualizer from "./Visualizer";
 import Tools from "./Tools";
 import SkillTree from "./SkillTree";
-import TasksCenter from "./TasksCenter";
+import TasksRoute from "./TasksRoute";
 import { isReviewDue } from "@/lib/review";
 import CommandPalette from "./CommandPalette";
 import ProfileDialog from "./ProfileDialog";
@@ -52,8 +53,15 @@ import CrashCourse from "./CrashCourse";
 import "./WorkspaceQoL.css";
 import "./WorkspaceRefresh.css";
 import { ScratchpadProvider, useScratchpad } from "./ScratchpadContext";
+import { WORKSPACE_PATHS, lessonPath, readWorkspacePath, type WorkspacePage } from "@/lib/workspaceRoutes";
+import SmartMathBar from "./SmartMathBar";
+import type { SmartPracticeSpec } from "@/lib/smartMath";
+import { smartPracticeTopicId } from "@/lib/smartMath";
+import { problemPath } from "@/lib/problemLink";
+import SymbolTranslator from "./SymbolTranslator";
+import FormulaXray from "./FormulaXray";
 
-type Page = "home" | "path" | "tasks" | "lesson" | "tools" | "review" | "crash";
+type Page = WorkspacePage;
 const tracks = [
   {
     key: "fractions",
@@ -173,30 +181,32 @@ function OrbitalArt() {
   );
 }
 
-export default function Workspace({ lessons }: { lessons: Lesson[] }) {
+export default function Workspace({ lessons, children }: { lessons: Lesson[]; children?: ReactNode }) {
   return (
     <ScratchpadProvider>
-      <WorkspaceContent lessons={lessons} />
+      <WorkspaceContent lessons={lessons}>{children}</WorkspaceContent>
     </ScratchpadProvider>
   );
 }
-function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
+function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?: ReactNode }) {
   const { open: scratchOpen, setOpen: setScratchOpen, size: scratchSize } =
     useScratchpad();
-  const [page, setPage] = useState<Page>("home");
-  const [crashVisited, setCrashVisited] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const route = readWorkspacePath(pathname);
+  const page = route.page;
+  const [crashVisited, setCrashVisited] = useState(page === "crash");
   const [lessonId, setLessonId] = useState(lessons[0]?.id ?? "");
   const [mode, setMode] = useState<(typeof modes)[number]["id"]>("eli5");
   const [progress, setProgress] = useState<Progress>(emptyProgress);
   const [ready, setReady] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [mobile, setMobile] = useState(false);
   const [settings, setSettings] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [trackLevel, setTrackLevel] = useState("all");
-  const [practiceTopic, setPracticeTopic] = useState<string>();
-  const [practiceRequest, setPracticeRequest] = useState(0);
-  const [toolTab, setToolTab] = useState<"formula" | "matrix" | "graph" | "exam">("formula");
+  const [toolTab, setToolTab] = useState<"formula" | "matrix" | "graph" | "exam" | "symbols">("formula");
   const [toolRequest, setToolRequest] = useState(0);
   useEffect(() => {
     try {
@@ -222,6 +232,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && !e.repeat) {
         e.preventDefault();
+        setSearchQuery("");
         setSettings(false);
         setSearchOpen((v) => !v);
       }
@@ -234,28 +245,50 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const lesson = lessons.find((l) => l.id === lessonId) ?? lessons[0];
+  const currentLessonId = route.lessonId ?? lessonId;
+  const lesson = lessons.find((l) => l.id === currentLessonId);
   const solved = Object.values(progress.solved).reduce((a, b) => a + b, 0);
   const completed = Object.values(progress.solved).filter((n) => n >= 5).length;
   const level = Math.floor(progress.xp / 500) + 1;
   const due = lessons.filter(
     (l) => progress.reviews[l.id] && isReviewDue(progress.reviews[l.id]),
   );
-  const jump = (p: Page) => {
-    if (p === "crash") setCrashVisited(true);
-    setPage(p);
+  const prepareNavigation = () => {
     setScratchOpen(false);
     setMobile(false);
-    window.scrollTo({ top: 0, behavior: "instant" });
+    setSearchOpen(false);
+    setMode("eli5");
+  };
+  const navigate = (href: string) => {
+    prepareNavigation();
+    if (!navigator.onLine) { window.history.pushState(null, "", href); window.scrollTo({ top: 0, behavior: "instant" }); }
+    else router.push(href);
+  };
+  const followLink = (href: string) => (event: { preventDefault: () => void }) => {
+    prepareNavigation();
+    if (!navigator.onLine) { event.preventDefault(); window.history.pushState(null, "", href); window.scrollTo({ top: 0, behavior: "instant" }); }
+  };
+  const jump = (p: Page) => {
+    if (p === "crash") setCrashVisited(true);
+    navigate(p === "lesson" ? lessonPath(currentLessonId) : WORKSPACE_PATHS[p]);
   };
   const openLesson = (l: Lesson) => {
     if (!l) return;
     setLessonId(l.id);
     setProgress((previous) => ({ ...previous, lastLessonId: l.id }));
     setMode("eli5");
-    jump("lesson");
+    navigate(lessonPath(l.id));
     setSearchOpen(false);
   };
+  useEffect(() => {
+    if (page === "crash") setCrashVisited(true);
+    if (route.lessonId && lessons.some((item) => item.id === route.lessonId)) {
+      setProgress((previous) => previous.lastLessonId === route.lessonId ? previous : { ...previous, lastLessonId: route.lessonId });
+    }
+    setMobile(false);
+    setScratchOpen(false);
+  }, [pathname, page, route.lessonId, lessons, setScratchOpen]);
+  const startSmartPractice = (spec: SmartPracticeSpec) => navigate(problemPath({ topicId: smartPracticeTopicId(spec), difficulty: 1, seed: Math.floor(Math.random() * 4294967296), smart: spec, mode: "series10" }));
   const nav = [
     { page: "home" as Page, label: "Twoja przestrzeń", icon: Home },
     { page: "path" as Page, label: "Ścieżka nauki", icon: Network },
@@ -287,9 +320,10 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
             />
           )}
           <aside className={`sidebar ${mobile ? "is-open" : ""}`}>
-            <button
+            <Link
+              href="/"
               className="brand"
-              onClick={() => jump("home")}
+              onNavigate={followLink("/")}
               aria-label="OmniMatma — strona główna"
             >
               <span className="brand-symbol">
@@ -299,7 +333,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                 omni<span className="brand-light">matma</span>
                 <sup>β</sup>
               </span>
-            </button>
+            </Link>
             <button
               className="search-trigger"
               onClick={() => { setSettings(false); setSearchOpen(true); }}
@@ -311,9 +345,10 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
             <span className="nav-label">TWOJA PRZESTRZEŃ</span>
             <nav aria-label="Menu główne">
               {nav.map((n) => (
-                <button
+                <Link
                   key={n.page}
-                  onClick={() => jump(n.page)}
+                  href={WORKSPACE_PATHS[n.page as Exclude<Page, "lesson">]}
+                  onNavigate={followLink(WORKSPACE_PATHS[n.page as Exclude<Page, "lesson">])}
                   className={`nav-item ${page === n.page ? "active" : ""}`}
                   aria-current={page === n.page ? "page" : undefined}
                 >
@@ -321,23 +356,22 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                   <span>{n.label}</span>
                   {n.page === "review" && due.length > 0 && <b>{due.length}</b>}
                   {n.page === "home" && <span className="nav-dot" />}
-                </button>
+                </Link>
               ))}
             </nav>
             <div className="sidebar-divider" />
             <span className="nav-label">ODKRYWAJ MATEMATYKĘ</span>
             <div className="track-nav">
               {tracks.map((t) => (
-                <button
+                <Link
                   key={t.key}
-                  onClick={() =>
-                    openLesson(lessons.find((l) => l.id.startsWith(t.key))!)
-                  }
+                  href={lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning")}
+                  onNavigate={followLink(lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning"))}
                 >
                   <span className={`tiny-dot ${t.color}`} />
                   {t.label}
                   <ChevronRight size={14} />
-                </button>
+                </Link>
               ))}
             </div>
             <div className="sidebar-bottom">
@@ -437,6 +471,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
               </div>
             </header>
             <main id="main" tabIndex={-1}>
+              {children}
               {storageError && (
                 <p className="storage-warning" role="status">
                   Przeglądarka blokuje zapis. Postęp działa w tej sesji, ale nie
@@ -446,7 +481,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
               <AnimatePresence initial={false}>
                 <motion.div
                   className="workspace-page"
-                  key={page + (page === "lesson" ? lessonId : "")}
+                  key={page + (page === "lesson" ? currentLessonId : "")}
                   initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.22 }}
@@ -460,38 +495,25 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         </span>
                         <span className="version-tag">OMNIMATMA / 01</span>
                       </div>
-                      <section className="resume-card panel" aria-label="Twój następny krok">
-                        <span className="resume-icon"><BookOpen size={23} /></span>
-                        <div>
-                          <span className="eyebrow">{progress.xp > 0 ? "DOBRZE CIĘ ZNOWU WIDZIEĆ" : "MAŁY KROK. WIELKIE AHA."}</span>
-                          <h2>{progress.xp > 0 ? `Wróć do nauki: ${resumeLesson?.title}` : "Odkrywaj we własnym tempie."}</h2>
-                          <p>{progress.xp > 0 ? "Twój postęp czeka. Kontynuuj od ostatniego tematu." : "Zacznij od podstaw — niczego nie blokujemy i nigdzie się nie spieszymy."}</p>
-                        </div>
-                        <button className="button primary" onClick={() => openLesson(resumeLesson)}>
-                          {progress.xp > 0 ? "Kontynuuj lekcję" : "Otwórz pierwszą lekcję"}<ArrowRight size={16} />
-                        </button>
-                      </section>
+                      <SmartMathBar onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} />
                       <section className="hero panel">
                         <div className="hero-copy">
                           <span className="chip hero-chip">
-                            <Sparkles size={13} /> Wiedza, która zostaje z Tobą
+                            <Sparkles size={13} /> {progress.xp > 0 ? "DOBRZE CIĘ ZNOWU WIDZIEĆ" : "MAŁY KROK. WIELKIE AHA."}
                           </span>
                           <h1>
                             Matematyka.
                             <br />
                             <span>W końcu po Twojemu.</span>
                           </h1>
-                          <p>
-                            Nie musisz mieć „ścisłego umysłu”. Wystarczy
-                            ciekawość.
-                            <br className="desktop-break" /> Zrozum idee,
-                            eksperymentuj i odkrywaj krok po kroku.
-                          </p>
+                          <div className="hero-resume" aria-label="Twój następny krok">
+                            {progress.xp > 0 ? <p title={resumeLesson?.title}>Wróć do nauki: <strong>{resumeLesson?.title}</strong></p> : <p>Nie musisz mieć „ścisłego umysłu”. Wystarczy ciekawość.</p>}
+                          </div>
                           <button
                             className="button primary"
                             onClick={() => openLesson(resumeLesson)}
                           >
-                            {solved ? "Wróć do nauki" : "Zacznij odkrywać"}
+                            {progress.xp > 0 ? "Kontynuuj lekcję" : "Zacznij odkrywać"}
                             <ArrowRight size={17} />
                           </button>
                           <div className="hero-footnote">
@@ -547,27 +569,6 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                           </span>
                         </div>
                       </div>
-                      <section className="panel crash-entry">
-                        <div className="crash-entry-icon">
-                          <Zap size={24} />
-                        </div>
-                        <div>
-                          <span className="eyebrow">
-                            MNIEJ PANIKI. WIĘCEJ KONKRETÓW.
-                          </span>
-                          <h2>Kolokwium / Sprawdzian jutro</h2>
-                          <p>
-                            Wzory, pułapki i szybki test z wybranych działów — w
-                            jednym miejscu.
-                          </p>
-                        </div>
-                        <button
-                          className="button primary"
-                          onClick={() => jump("crash")}
-                        >
-                          Ułóż szybką powtórkę <ArrowRight size={16} />
-                        </button>
-                      </section>
                       <div className="section-heading path-heading">
                         <div>
                           <span className="eyebrow">
@@ -650,6 +651,11 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         <DashboardPerspectives />
                         <DashboardCircleDemo onOpenTools={() => { setToolTab("graph"); setToolRequest((n) => n + 1); jump("tools"); }} />
                       </div>
+                      <section className="panel crash-entry">
+                        <div className="crash-entry-icon"><Zap size={24} /></div>
+                        <div><span className="eyebrow">MNIEJ PANIKI. WIĘCEJ KONKRETÓW.</span><h2>Kolokwium / Sprawdzian jutro</h2><p>Wzory, pułapki i szybki test z wybranych działów — w jednym miejscu.</p></div>
+                        <button className="button primary" onClick={() => jump("crash")}>Ułóż szybką powtórkę <ArrowRight size={16} /></button>
+                      </section>
                       <footer className="page-footer">
                         <span>
                           <InfinityIcon size={17} /> Matematyka jest dla
@@ -734,15 +740,14 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                                 </button>
                               ))}
                             </div>
-                            <AnimatePresence mode="wait">
+                            <AnimatePresence initial={false}>
                               <motion.div
                                 key={mode}
                                 id="mode-panel"
                                 role="tabpanel"
                                 aria-labelledby={`tab-${mode}`}
-                                initial={{ opacity: 0, y: 6 }}
+                                initial={false}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
                               >
                                 <h2>
                                   {modes.find((m) => m.id === mode)?.label}
@@ -759,6 +764,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                                   )}
                               </motion.div>
                             </AnimatePresence>
+                            <FormulaXray formula={lesson.formula} topicId={lesson.generatorId} title={lesson.title} />
                             <details className="example-detail">
                               <summary>Przykład krok po kroku</summary>
                               <MathText text={lesson.example} />
@@ -797,6 +803,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                               setProgress((p) => miss(p, lesson.id))
                             }
                           />
+                          <SymbolTranslator compact />
                         </div>
                         <aside className="lesson-side">
                           <section className="panel">
@@ -852,13 +859,12 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                     </>
                   )}
                   {page === "tasks" && (
-                    <TasksCenter
-                      key={`${practiceTopic ?? "all"}-${practiceRequest}`}
-                      initialTopicId={practiceTopic}
+                    <Suspense fallback={<section className="panel tasks-loading" role="status"><h1>Zadania</h1><p>Przygotowujemy Twój trening…</p></section>}>
+                    <TasksRoute
                       lessons={lessons}
-                      onSolved={(problemId, difficulty) => {
+                      onSolved={(problemId, difficulty, topicId) => {
                         const target = lessons.find((item) =>
-                          problemId.startsWith(`${item.generatorId}-`),
+                          topicId ? item.id === topicId : problemId.startsWith(`${item.generatorId}-`),
                         );
                         if (!target) return false;
                         const granted = !progress.awarded.includes(problemId);
@@ -868,6 +874,7 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
                         return granted;
                       }}
                     />
+                    </Suspense>
                   )}
                   {page === "tools" && (
                     <>
@@ -945,10 +952,10 @@ function WorkspaceContent({ lessons }: { lessons: Lesson[] }) {
             </main>
           </div>
           {searchOpen && (
-            <CommandPalette lessons={lessons} onLesson={openLesson}
-              onPractice={(item) => { setPracticeTopic(item.id); setPracticeRequest((n) => n + 1); setProgress((p) => ({ ...p, lastLessonId: item.id })); jump("tasks"); }}
+            <CommandPalette lessons={lessons} initialQuery={searchQuery} onLesson={openLesson} onSmartPractice={startSmartPractice}
+              onPractice={(item) => { setProgress((p) => ({ ...p, lastLessonId: item.id })); navigate(problemPath({ topicId: item.id, difficulty: 1, seed: Math.floor(Math.random() * 4294967296) })); }}
               onTool={(tool) => { setToolTab(tool); setToolRequest((n) => n + 1); jump("tools"); }}
-              onClose={() => setSearchOpen(false)} />
+              onClose={() => { setSearchOpen(false); setSearchQuery(""); }} />
           )}
           {settings && (
             <ProfileDialog progress={progress} onChange={setProgress} onClose={() => setSettings(false)} />

@@ -23,6 +23,7 @@ import {
   ListChecks,
   PencilRuler,
   RotateCw,
+  Share2,
   Sparkles,
   Target,
   Trophy,
@@ -45,6 +46,9 @@ import {
 import MathText, { MathFormula } from "./MathText";
 import { useScratchpad } from "./ScratchpadContext";
 import "./TasksCenter.css";
+import { problemPath, type ProblemLink } from "@/lib/problemLink";
+import { generateSmartPractice, smartPracticeTopicId, type SmartPracticeSpec } from "@/lib/smartMath";
+import SymbolTranslator from "./SymbolTranslator";
 
 const LEVEL_OPTIONS: { id: MasterLevel | "all"; label: string }[] = [
   { id: "all", label: "Wszystkie" },
@@ -90,8 +94,12 @@ function createRound(
   topic: MasterTopic,
   difficulty: MasterDifficulty,
   seed: number,
+  smart?: SmartPracticeSpec,
 ): Round {
-  return { ...generateMasterProblem(topic.id, difficulty, seed), seed };
+  const base = generateMasterProblem(topic.id, difficulty, seed);
+  if (!smart) return { ...base, seed };
+  const problem = generateSmartPractice(smart, seed, base.effectiveDifficulty);
+  return { ...base, problem, topic: { ...topic, label: "Podobne zadania · Smart Math" }, deepSteps: problem.steps.map((step) => `${step.explanation} Zapis kontrolny: ${step.expression}.`), seed };
 }
 
 function prefersReducedMotion(): boolean {
@@ -116,22 +124,28 @@ export default function TasksCenter({
   lessons,
   onSolved,
   initialTopicId,
+  initialProblem,
 }: {
   lessons: Lesson[];
-  onSolved: (problemId: string, difficulty: number) => boolean;
+  onSolved: (problemId: string, difficulty: number, lessonId?: string) => boolean;
   initialTopicId?: string;
+  initialProblem?: ProblemLink;
 }) {
   const catalog = useMemo(() => buildMasterCatalog(lessons), [lessons]);
-  const initialTopic = catalog.find((topic) => topic.lessonId === initialTopicId) ?? catalog[0];
+  const requestedTopic = initialProblem?.topicId ?? initialTopicId;
+  const initialTopic = catalog.find((topic) => topic.lessonId === requestedTopic) ?? catalog[0];
   const [round, setRound] = useState<Round | null>(() =>
-    initialTopic ? createRound(initialTopic, 1, 20261025) : null,
+    initialTopic ? createRound(initialTopic, (initialProblem?.difficulty ?? 1) as MasterDifficulty, initialProblem?.seed ?? 20261025, initialProblem?.smart) : null,
   );
   const [activeTopicId, setActiveTopicId] = useState(initialTopic?.id ?? "");
   const [level, setLevel] = useState<MasterLevel | "all">("all");
   const [category, setCategory] = useState("all");
-  const [topicChoice, setTopicChoice] = useState(initialTopicId ? initialTopic?.id ?? "all" : "all");
-  const [difficulty, setDifficulty] = useState<MasterDifficulty>(1);
-  const [mode, setMode] = useState<Mode>("single");
+  const [topicChoice, setTopicChoice] = useState(requestedTopic ? initialTopic?.id ?? "all" : "all");
+  const [difficulty, setDifficulty] = useState<MasterDifficulty>((initialProblem?.difficulty ?? 1) as MasterDifficulty);
+  const [mode, setMode] = useState<Mode>(initialProblem?.mode ?? "single");
+  const [shareStatus, setShareStatus] = useState("");
+  const [shareFallback, setShareFallback] = useState("");
+  const filterSignature = useRef<string | null>(initialProblem ? JSON.stringify(["all", "all", requestedTopic, initialProblem.difficulty, initialProblem.mode ?? "single"]) : null);
   const [seriesDone, setSeriesDone] = useState(0);
   const [seriesComplete, setSeriesComplete] = useState(false);
   const [input, setInput] = useState("");
@@ -178,6 +192,8 @@ export default function TasksCenter({
       ),
     [catalog, level, safeCategory, safeTopicChoice],
   );
+  const activeSmart = initialProblem?.smart && safeTopicChoice === smartPracticeTopicId(initialProblem.smart) ? initialProblem.smart : undefined;
+  const customFor = (topic: MasterTopic) => activeSmart && topic.id === smartPracticeTopicId(activeSmart) ? activeSmart : undefined;
 
   const seriesTarget = seriesTargetFor(mode);
   const modeLabel =
@@ -197,6 +213,8 @@ export default function TasksCenter({
     : 0;
 
   function resetInteraction() {
+    setShareStatus("");
+    setShareFallback("");
     setInput("");
     setHints(0);
     setResult(null);
@@ -217,6 +235,9 @@ export default function TasksCenter({
   }
 
   useEffect(() => {
+    const signature = JSON.stringify([level, safeCategory, safeTopicChoice, difficulty, mode]);
+    if (filterSignature.current === signature) return;
+    filterSignature.current = signature;
     const candidates = filterMasterTopics(catalog, level, safeCategory).filter(
       (topic) => safeTopicChoice === "all" || topic.id === safeTopicChoice,
     );
@@ -227,7 +248,7 @@ export default function TasksCenter({
     }
     const topic = candidates[0];
     applyRound(
-      createRound(topic, difficulty, randomMasterSeed()),
+      createRound(topic, difficulty, randomMasterSeed(), customFor(topic)),
       topic,
       true,
     );
@@ -243,7 +264,7 @@ export default function TasksCenter({
     const topic =
       candidates.find((item) => item.id === activeTopicId) ?? candidates[0];
     applyRound(
-      createRound(topic, difficulty, drawSeed(round?.seed)),
+      createRound(topic, difficulty, drawSeed(round?.seed), customFor(topic)),
       topic,
       true,
     );
@@ -265,11 +286,11 @@ export default function TasksCenter({
       topic = candidates[(index + 1) % candidates.length];
     }
     let seed = drawSeed(round?.seed);
-    let next = createRound(topic, difficulty, seed);
+    let next = createRound(topic, difficulty, seed, customFor(topic));
     let guard = 0;
     while (round && next.problem.id === round.problem.id && guard < 8) {
       seed = drawSeed(round.seed);
-      next = createRound(topic, difficulty, seed);
+      next = createRound(topic, difficulty, seed, customFor(topic));
       guard++;
     }
     applyRound(next, topic, false);
@@ -326,7 +347,7 @@ export default function TasksCenter({
         setCreditStatus("duplicate");
       } else {
         creditedRef.current.add(round.problem.id);
-        const granted = onSolved(round.problem.id, round.effectiveDifficulty);
+        const granted = onSolved(round.problem.id, round.effectiveDifficulty, round.topic.lessonId);
         setCreditStatus(granted ? "granted" : "duplicate");
         if (granted && !prefersReducedMotion()) {
           void confetti({
@@ -366,6 +387,18 @@ export default function TasksCenter({
     setLevel("all");
     setCategory("all");
     setTopicChoice("all");
+  }
+  async function shareProblem() {
+    if (!round) return;
+    const href = new URL(problemPath({ topicId: round.topic.id, difficulty: round.effectiveDifficulty, seed: round.seed, ...(customFor(round.topic) ? { smart: customFor(round.topic) } : {}) }), window.location.origin).href;
+    try {
+      await navigator.clipboard.writeText(href);
+      setShareFallback("");
+      setShareStatus("Link skopiowany. Na drugim urządzeniu otworzy dokładnie ten sam przykład.");
+    } catch {
+      setShareFallback(href);
+      setShareStatus("Przeglądarka zablokowała schowek. Zaznacz i skopiuj link poniżej.");
+    }
   }
 
   return (
@@ -531,6 +564,8 @@ export default function TasksCenter({
             <motion.div
               key={round.problem.id}
               className="tasks-problem"
+              data-problem-id={round.problem.id}
+              data-seed={round.seed}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 320, damping: 30 }}
@@ -665,6 +700,7 @@ export default function TasksCenter({
                     </button>
                   ))}
                 </div>
+                <button type="button" className="tasks-scratch tasks-share" onClick={shareProblem} aria-label="Udostępnij to zadanie (Kopiuj link)"><Share2 size={15} /> Kopiuj link</button>
                 <button
                   type="button"
                   className="tasks-scratch"
@@ -673,6 +709,8 @@ export default function TasksCenter({
                   <PencilRuler size={15} /> Otwórz brudnopis
                 </button>
               </div>
+              <p className="tasks-share-status" role="status">{shareStatus}</p>
+              {shareFallback && <label className="tasks-share-fallback">Link do tego zadania<input readOnly aria-label="Link do zadania" value={shareFallback} onFocus={(event) => event.currentTarget.select()} /></label>}
 
               <AnimatePresence initial={false}>
                 {round.problem.hints.slice(0, hints).map((hint, index) => (
@@ -735,6 +773,7 @@ export default function TasksCenter({
                   ))}
                 </div>
               </details>
+              <SymbolTranslator compact />
             </motion.div>
           ) : (
             <div className="tasks-empty">

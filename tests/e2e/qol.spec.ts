@@ -258,7 +258,7 @@ test("crash course builds a selected review and balanced test without awarding X
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne", exact: true })
-    .getByRole("button", { name: "Sprawdzian jutro", exact: true })
+    .getByRole("link", { name: "Sprawdzian jutro", exact: true })
     .click();
   await expect(page.locator(".crash-answer input").first()).toHaveValue("0");
   await page

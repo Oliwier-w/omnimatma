@@ -125,5 +125,9 @@ export function fractionProblem(
     [formula, detail, `Pełny wynik: ${answer}. ${formula}`],
   );
   if (id === "fractions-meaning") problem.latex = "\\frac{?}{?}";
+  if (id === "fractions-add") problem.mistakes = [{
+    answer: fraction(a + c, b + d),
+    message: "Dodano osobno liczniki i mianowniki. Przy dodawaniu ułamków najpierw sprowadzamy je do wspólnego mianownika, a potem dodajemy tylko liczniki: mianownik określa rozmiar części i nie jest sumą mianowników.",
+  }];
   return problem;
 }

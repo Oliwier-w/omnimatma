@@ -9,6 +9,8 @@ export type Problem = {
   answer: string;
   hints: string[];
   steps: { expression: string; explanation: string }[];
+  /** Generated from real operands, never inferred from the displayed prompt. */
+  mistakes?: { answer: string; message: string }[];
 };
 export function random(seed: number) {
   let state = seed >>> 0;

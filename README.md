@@ -26,10 +26,17 @@ Zatrzymaj `dev` przed `build` — oba korzystają z `.next`. Testy E2E uruchamia
 
 ## Co działa
 
+- Prawdziwe adresy App Router: `/`, `/sciezka`, `/zadania`, `/powtorki`, `/laboratorium`, `/sprawdzian`, `/lekcja/<id>`. Sidebar używa `next/link` z prefetchingiem; Wstecz/Dalej i bezpośrednie wejście odtwarzają właściwy widok. Wspólny layout zachowuje brudnopis i aktywną szybką powtórkę. Menu, poziomy nauki i cztery perspektywy są w HTML od razu; nie ma blokady `mounted` dla tej struktury.
+- Smart Math Bar na Dashboardzie i w Ctrl/Cmd+K: dokładna arytmetyka ułamków, równania liniowe z `x` i wyznaczniki 2×2 (`det([1,2;3,4])`), objaśnione kroki i seria 10 faktycznie podobnych przykładów. To ograniczony, bezpieczny solver, nie uniwersalny CAS. Potęgi, funkcje, równania nieliniowe i zapis dziesiętny nie są obsługiwane w tym pasku; ułamki wpisuj jako `a/b`.
+- „Kopiuj link” w Zadaniach zapisuje temat, trudność i ziarno w URL. Wersja `v=1` odtwarza ten sam przykład po przeładowaniu i na drugim urządzeniu, również dla rodzin Smart Math. Nie zapisuje odpowiedzi ani danych profilu; wadliwy link wyświetla komunikat i umożliwia nowy trening.
+- Tłumacz 29 symboli w Laboratorium oraz podręczny widżet w lekcjach i zadaniach: wymowa po polsku, proste znaczenie i konkretny przykład.
+- „Rentgen Wzoru” w lekcji i kartach wzorów: domyślnie wyłączony przełącznik, kolorowe symbole i zgodna legenda. Adnotacje nie zmieniają struktury matematycznej wzoru; nieznane symbole mają ostrożny opis zależny od kontekstu, nie pozorną definicję.
+- Audyt 60 generatorów: poprawione konstrukcje wsteczne na poziomach 1–3 tam, gdzie wcześniej powstawały niepotrzebnie niewygodne wyniki, wspólny cleaner LaTeX i komunikaty typowych pułapek (dodawanie ułamków, znak wyznacznika, brak składnika `2ab`). Szczegóły i świadomie zachowane ułamki/π/√2/√3: [`docs/generator-audit.md`](docs/generator-audit.md).
+
 - Responsywny dashboard Bento/Glass, nawigacja, wyszukiwarka Ctrl/Cmd+K, pięć motywów, ograniczenie animacji zgodnie z preferencją systemową.
 - Dashboard jest widoczny od pierwszego HTML, również bez JavaScriptu: menu, trzy poziomy nauki, sześć kierunków i podgląd perspektyw. Suwak promienia 1–10 zmienia okrąg SVG; Metafora / Przepis / Obraz / Definicja przełączają wyjaśnienie ułamka bez opuszczania strony.
 - Wyszukiwarka w headerze obejmuje lekcje, ich generatory i narzędzia laboratorium. Strzałki i Enter wybierają wynik; wynik generatora otwiera konkretny podtemat, a wynik narzędzia właściwą zakładkę.
-- Awatar otwiera profil: imię, inicjał, motywy, eksport/import postępów JSON i reset z potwierdzeniem. Import najpierw waliduje plik i pokazuje podgląd; niepoprawny plik nie nadpisuje danych. Karta powrotu przy XP > 0 otwiera ostatnio odwiedzoną lekcję.
+- Awatar otwiera profil: imię, inicjał, motywy, eksport/import postępów JSON i reset z potwierdzeniem. Import najpierw waliduje plik i pokazuje podgląd; niepoprawny plik nie nadpisuje danych. Powrót do ostatniej lekcji jest połączony z głównym Hero; poziomy i działy są zaraz pod statystykami XP.
 - 60 mikro-lekcji w sześciu działach: ułamki zwykłe, macierze, liczby zespolone oraz trzy ścieżki maturalne (liczby i algebra, funkcje i ciągi, geometria i dane). Każda: ELI5, tryb szkolny, wizualny i akademicki, przykład, pułapki, generator z 5 poziomami, podpowiedzi i rozwiązanie.
 - Interaktywne modele ułamka, indeksów macierzy i płaszczyzny Gaussa. To modele podstawowe wspólne dla działu; opis konkretnej operacji znajduje się w notatce. Lekcje maturalne mają opis wizualny w treści, bez podstawiania niepasującego widgetu z innego działu.
 - Proceduralne losowanie, sprawdzanie wartości, wymuszanie postaci skróconej tam, gdzie wymaga jej zadanie, klawiatura matematyczna i brudnopis.
@@ -95,6 +102,6 @@ W Vercel wybierz **Import Git Repository → Next.js**, katalog główny repo, N
 ## Decyzje techniczne
 
 - `gray-matter`: YAML i czytelny błąd frontmatter; prosty renderer treści obsługuje akapity, pogrubienie, nagłówki i matematykę, bez surowego HTML/wykonywania Markdown.
-- `mathjs`: parser AST i wybrane operacje; własna lista dozwolonych węzłów i limity. Checker nie używa ogólnego evaluatora; kalkulator dopuszcza `evaluate` tylko po walidacji AST i białej liście funkcji. Nie ma solvera równań symbolicznych.
+- `mathjs`: parser AST i wybrane operacje; własna lista dozwolonych węzłów i limity. Checker nie używa ogólnego evaluatora; kalkulator dopuszcza `evaluate` tylko po walidacji AST i białej liście funkcji. Smart Math używa własnej dokładnej arytmetyki BigInt i rozwiązuje wyłącznie jawnie obsługiwane rodziny, w tym równania liniowe.
 - `framer-motion`, `lucide-react`, `canvas-confetti`, Tailwind: animacje, ikony, feedback i warstwa prezentacji. KaTeX renderuje matematykę z `trust: false`.
 - Playwright jest wyłącznie zależnością developerską do regresji UI/offline. Brak zewnętrznych wywołań podczas nauki i testów jednostkowych.

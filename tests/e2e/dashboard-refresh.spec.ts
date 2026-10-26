@@ -5,9 +5,9 @@ test("dashboard navigation, directions and demos are visible without JavaScript"
   const page = await context.newPage();
   await page.goto(baseURL!);
   const nav = page.getByRole("navigation", { name: "Menu główne" });
-  await expect(nav.getByRole("button")).toHaveCount(6);
-  await expect(nav.getByRole("button", { name: "Zadania", exact: true })).toBeVisible();
-  await expect(page.locator(".track-nav button")).toHaveCount(6);
+  await expect(nav.getByRole("link")).toHaveCount(6);
+  await expect(nav.getByRole("link", { name: "Zadania", exact: true })).toBeVisible();
+  await expect(page.locator(".track-nav a")).toHaveCount(6);
   await expect(page.locator(".track-card")).toHaveCount(6);
   await expect(page.locator(".learning-level-card")).toHaveCount(3);
   await expect(page.getByRole("heading", { name: "Matematyka. W końcu po Twojemu." })).toBeVisible();
@@ -69,7 +69,7 @@ test("command palette opens a targeted generator and laboratory tool", async ({ 
   const search = page.getByRole("textbox", { name: "Szukaj tematu", exact: true });
   await search.fill("zadania dodawanie macierzy");
   await page.getByRole("button", { name: /Ćwicz: Dodawanie macierzy/ }).click();
-  await expect(page.locator(".tasks-problem h2")).toHaveText("Dodawanie macierzy");
+  await expect(page.locator(".tasks-problem-head h2")).toHaveText("Dodawanie macierzy");
   await expect(page.getByLabel("Podtemat", { exact: true })).not.toHaveValue("all");
   await page.keyboard.press("Control+k");
   await page.getByRole("textbox", { name: "Szukaj tematu", exact: true }).fill("Wykres funkcji");
@@ -98,7 +98,7 @@ test("profile exports, validates imports, restores progress and resumes the last
     }));
   });
   await page.goto("/");
-  await expect(page.locator(".resume-card")).toContainText("Wróć do nauki: Dodawanie macierzy");
+  await expect(page.locator(".hero-resume")).toContainText("Wróć do nauki: Dodawanie macierzy");
   await page.getByRole("button", { name: "Profil: Odkrywca", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Profil i postępy", exact: true });
   await expect(dialog).toBeVisible();

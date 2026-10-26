@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   BookOpen,
   Dumbbell,
@@ -13,8 +13,9 @@ import {
 import type { Lesson } from "@/lib/lesson";
 import { useModalFocus } from "@/lib/useModalFocus";
 import "./CommandPalette.css";
+import { solveSmartMath, type SmartPracticeSpec } from "@/lib/smartMath";
 
-type ToolId = "formula" | "matrix" | "graph" | "exam";
+type ToolId = "formula" | "matrix" | "graph" | "exam" | "symbols";
 
 type CommandResult = {
   id: string;
@@ -30,7 +31,9 @@ type CommandPaletteProps = {
   lessons: Lesson[];
   onLesson: (lesson: Lesson) => void;
   onPractice: (lesson: Lesson) => void;
-  onTool: (tool: "formula" | "matrix" | "graph" | "exam") => void;
+  onTool: (tool: ToolId) => void;
+  initialQuery?: string;
+  onSmartPractice: (spec: SmartPracticeSpec) => void;
   onClose: () => void;
 };
 
@@ -43,6 +46,7 @@ const TOOLS: {
   meta: string;
   aliases: string;
 }[] = [
+  { tool: "symbols", label: "Tłumacz symboli", meta: "Jak przeczytać matematykę po polsku?", aliases: "symbole symbol slownik tlumacz przeczytac znaczek suma sigma calka kwantyfikator" },
   {
     tool: "formula",
     label: "Tablice wzorów",
@@ -89,6 +93,7 @@ const PRACTICE_KEYWORDS = [
 ];
 
 const TOOL_ICONS: Record<ToolId, typeof Sigma> = {
+  symbols: Sigma,
   formula: Sigma,
   matrix: Network,
   graph: FunctionSquare,
@@ -230,9 +235,14 @@ export default function CommandPalette({
   onPractice,
   onTool,
   onClose,
+  initialQuery = "",
+  onSmartPractice,
 }: CommandPaletteProps) {
   useModalFocus(true);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
+  const deferredQuery = useDeferredValue(query);
+  const mathLike = /^\s*(?:[(-]*\d|det\s*\(|x\s*[+\-*/=])/i.test(deferredQuery) || deferredQuery.includes("=");
+  const mathResult = useMemo(() => mathLike ? solveSmartMath(deferredQuery) : null, [deferredQuery, mathLike]);
   const [activeIndex, setActiveIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -274,6 +284,7 @@ export default function CommandPalette({
       onClose();
       return;
     }
+    if (mathResult?.kind === "solved" && event.target === inputRef.current && event.key === "Enter") { event.preventDefault(); return; }
     if (!items.length) return;
     const onInput = event.target === inputRef.current;
     if (event.key === "ArrowDown") {
@@ -324,6 +335,7 @@ export default function CommandPalette({
             placeholder="Szukaj tematu, wzoru lub zadania…"
             autoComplete="off"
             spellCheck={false}
+            maxLength={300}
             autoCapitalize="off"
           />
           <button
@@ -336,7 +348,14 @@ export default function CommandPalette({
           </button>
         </div>
 
-        <div className="cp-results">
+        {mathResult && <section className="cp-math" aria-label="Smart Math" aria-live="polite">
+          {mathResult.kind === "solved" ? <>
+            <p className="cp-math-answer">Dokładny wynik: <strong>{mathResult.answer}</strong></p>
+            <details><summary>Rozwiązanie krok po kroku</summary><ol>{mathResult.steps.map((step, index) => <li key={index}><strong>{step.title}</strong><code>{step.expression}</code><p>{step.explanation}</p></li>)}</ol></details>
+            <button type="button" className="button primary" onClick={() => { onSmartPractice(mathResult.practice); onClose(); }}>Wygeneruj 10 podobnych zadań</button>
+          </> : <p>{mathResult.message}</p>}
+        </section>}
+        <div className="cp-results" hidden={mathResult?.kind === "solved"}>
           {items.length === 0 ? (
             <p className="cp-status" role="status">
               Brak wyników dla „{trimmed}”. Spróbuj innego słowa — albo

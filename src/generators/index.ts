@@ -7,6 +7,8 @@ import { complexProblem } from "./complex";
 import { maturaLiczbyProblem } from "./maturaLiczby";
 import { maturaFunkcjeProblem } from "./maturaFunkcje";
 import { maturaGeometriaProblem } from "./maturaGeometria";
+import { cleanMathLatex } from "../lib/cleanMathLatex";
+import { classifyMistake } from "./mistakes";
 export type { Problem } from "./shared";
 export { checkAnswer, checkSteps } from "../lib/math";
 
@@ -16,6 +18,10 @@ export function checkProblemAnswer(
   input: string,
 ): ReturnType<typeof checkAnswer> {
   const result = checkAnswer(input, problem.answer);
+  if (!result.correct) {
+    const message = classifyMistake(problem, input);
+    return message ? { correct: false, message } : result;
+  }
   if (
     !result.correct ||
     !["fractions-meaning", "fractions-simplify", "fractions-mixed"].includes(
@@ -171,5 +177,7 @@ export function generateProblem(
           : generatorId.startsWith("matura-funkcje-")
             ? maturaFunkcjeProblem
             : maturaGeometriaProblem;
-  return factory(generatorId, difficulty, seed, rng);
+  const problem = factory(generatorId, difficulty, seed, rng);
+  problem.latex = cleanMathLatex(problem.latex);
+  return problem;
 }

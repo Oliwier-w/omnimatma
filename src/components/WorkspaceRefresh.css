@@ -1,4 +1,24 @@
 .topbar { gap: 20px; }
+.hero { min-height: 290px; margin-top: 18px; }
+.hero .hero-copy { padding-top: 28px; padding-bottom: 28px; }
+.hero .hero-copy h1 { font-size: clamp(30px, 3.4vw, 48px); }
+.hero-resume { min-height: 54px; }
+.hero-resume p { margin: 14px 0 !important; }
+.hero-resume strong { color: var(--text); }
+.tasks-loading { min-height: 440px; padding: 32px; background: linear-gradient(110deg, var(--panel) 20%, var(--accent-wash) 50%, var(--panel) 80%); }
+.tasks-actions { flex-wrap: wrap; }
+.tasks-share-status { margin: 8px 0; font-size: 11px; line-height: 1.7; color: var(--green); }
+.tasks-share-fallback { display: grid; gap: 8px; font-size: 11px; color: var(--muted); }
+.tasks-share-fallback input { min-width: 0; width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--text); font: inherit; }
+.cp-math { padding: 20px; max-height: 55vh; overflow: auto; border-top: 1px solid var(--line); }
+.cp-math-answer { color: var(--muted); margin: 0 0 16px; font-size: 13px; }
+.cp-math-answer strong { color: var(--green); font-family: "JetBrains Mono", monospace; font-size: 20px; }
+.cp-math summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+.cp-math li { margin: 15px 0; font-size: 12px; line-height: 1.6; }
+.cp-math li code { display: block; margin: 8px 0; overflow-wrap: anywhere; }
+.cp-math li p { color: var(--muted); }
+.cp-math .button { margin-top: 18px; }
+.cp-results[hidden] { display: none; }
 .topbar .breadcrumb { flex: 0 1 32%; }
 .header-search {
   display: flex;

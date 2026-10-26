@@ -27,7 +27,7 @@ test("matura track opens a complete four-mode lesson and checks a generated task
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne" })
-    .getByRole("button", { name: "Ścieżka nauki", exact: true })
+    .getByRole("link", { name: "Ścieżka nauki", exact: true })
     .click();
   await expect(page.locator(".skill-track")).toHaveCount(6);
   // The stacked mobile tree is very tall; avoid allocating a huge bitmap.
