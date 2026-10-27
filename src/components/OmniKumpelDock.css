@@ -1,0 +1,10 @@
+.ok-dock-trigger { position: fixed; right: 22px; bottom: 22px; z-index: 38; display: inline-flex; align-items: center; gap: 9px; padding: 12px 16px; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 16px; color: var(--text); background: var(--panel-solid); box-shadow: 0 10px 40px #0004, 0 0 26px var(--accent-wash); font-size: 11px; transition: transform .15s, border-color .15s; }
+.ok-dock-trigger:hover { transform: translateY(-2px); border-color: var(--accent); }
+.ok-dock-trigger > svg { color: var(--accent); }
+.ok-dock-trigger b, .nav-item b.nav-ai-badge { border: 1px solid var(--line); border-radius: 5px; padding: 3px 5px; background: var(--accent-wash); color: var(--accent); font-size: 8px; letter-spacing: .08em; }
+.ok-dock-backdrop { position: fixed; inset: 0; z-index: 85; background: #0007; backdrop-filter: blur(5px); }
+.ok-dock-panel { position: absolute; right: 0; top: 0; bottom: 0; width: min(680px, 100%); overflow-y: auto; overscroll-behavior: contain; background: var(--panel-solid); color: var(--text); border-left: 1px solid var(--line); box-shadow: -20px 0 80px #0006; padding: 0 20px 24px; scroll-padding-top: 80px; }
+.ok-dock-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 3; margin: 0 -20px 16px; padding: 16px 20px; background: var(--panel-solid); border-bottom: 1px solid var(--line); font-size: 11px; }
+.ok-dock-heading > span { display: inline-flex; align-items: center; gap: 9px; color: var(--accent); }
+@media (max-width: 650px) { .ok-dock-trigger { right: 12px; bottom: 12px; padding: 11px 12px; } .ok-dock-panel { padding-right: 14px; padding-left: 14px; } .ok-dock-heading { margin-right: -14px; margin-left: -14px; padding-right: 14px; padding-left: 14px; } }
+@media (prefers-reduced-motion: reduce) { .ok-dock-trigger { transition: none; } .ok-dock-trigger:hover { transform: none; } }

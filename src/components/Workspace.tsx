@@ -28,6 +28,7 @@ import {
   Sigma,
   FunctionSquare,
   Ruler,
+  Bot,
 } from "lucide-react";
 import type { Lesson } from "@/lib/lesson";
 import {
@@ -60,6 +61,11 @@ import { smartPracticeTopicId } from "@/lib/smartMath";
 import { problemPath } from "@/lib/problemLink";
 import SymbolTranslator from "./SymbolTranslator";
 import FormulaXray from "./FormulaXray";
+import OmniKumpel from "./OmniKumpel";
+import OmniKumpelDock from "./OmniKumpelDock";
+import { OmniKumpelProvider, useOmniKumpel, useOmniQuestion } from "./OmniKumpelContext";
+import type { OmniPracticeSpec } from "@/lib/omnikumpelTypes";
+import { omniPracticeTopicId } from "@/lib/omnikumpelEngine";
 
 type Page = WorkspacePage;
 const tracks = [
@@ -183,14 +189,18 @@ function OrbitalArt() {
 
 export default function Workspace({ lessons, children }: { lessons: Lesson[]; children?: ReactNode }) {
   return (
+    <OmniKumpelProvider>
     <ScratchpadProvider>
       <WorkspaceContent lessons={lessons}>{children}</WorkspaceContent>
     </ScratchpadProvider>
+    </OmniKumpelProvider>
   );
 }
 function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?: ReactNode }) {
   const { open: scratchOpen, setOpen: setScratchOpen, size: scratchSize } =
     useScratchpad();
+  const { question: omniQuestion, setHelperOpen } = useOmniKumpel();
+  const { notes: scratchpadNotes } = useScratchpad();
   const pathname = usePathname();
   const router = useRouter();
   const route = readWorkspacePath(pathname);
@@ -258,6 +268,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
     setMobile(false);
     setSearchOpen(false);
     setMode("eli5");
+    setHelperOpen(false);
   };
   const navigate = (href: string) => {
     prepareNavigation();
@@ -287,12 +298,15 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
     }
     setMobile(false);
     setScratchOpen(false);
-  }, [pathname, page, route.lessonId, lessons, setScratchOpen]);
+    setHelperOpen(false);
+  }, [pathname, page, route.lessonId, lessons, setScratchOpen, setHelperOpen]);
   const startSmartPractice = (spec: SmartPracticeSpec) => navigate(problemPath({ topicId: smartPracticeTopicId(spec), difficulty: 1, seed: Math.floor(Math.random() * 4294967296), smart: spec, mode: "series10" }));
+  const startOmniPractice = (spec: OmniPracticeSpec) => navigate(problemPath({ topicId: omniPracticeTopicId(spec), difficulty: 1, seed: Math.floor(Math.random() * 4294967296), omni: spec, mode: "series5" }));
   const nav = [
     { page: "home" as Page, label: "Twoja przestrzeń", icon: Home },
     { page: "path" as Page, label: "Ścieżka nauki", icon: Network },
     { page: "tasks" as Page, label: "Zadania", icon: Dumbbell },
+    { page: "kumpel" as Page, label: "OmniKumpel", icon: Bot },
     { page: "review" as Page, label: "Powtórki", icon: RotateIcon },
     { page: "tools" as Page, label: "Laboratorium", icon: Wrench },
     { page: "crash" as Page, label: "Sprawdzian jutro", icon: Zap },
@@ -354,6 +368,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                 >
                   <n.icon size={19} />
                   <span>{n.label}</span>
+                  {n.page === "kumpel" && <b className="nav-ai-badge">AI</b>}
                   {n.page === "review" && due.length > 0 && <b>{due.length}</b>}
                   {n.page === "home" && <span className="nav-dot" />}
                 </Link>
@@ -700,6 +715,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                   )}
                   {page === "lesson" && lesson && (
                     <>
+                      <LessonOmniContext lesson={lesson} />
                       <div className="lesson-breadcrumb">
                         <button
                           className="text-button"
@@ -886,6 +902,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                       <Tools lessons={lessons} initialTab={toolTab} navigationKey={toolRequest} />
                     </>
                   )}
+                  {page === "kumpel" && <OmniKumpel context={omniQuestion} scratchpadNotes={scratchpadNotes} onPractice={startOmniPractice} />}
                   {page === "review" && (
                     <>
                       <PageTitle
@@ -951,6 +968,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
               )}
             </main>
           </div>
+          <OmniKumpelDock showTrigger={["lesson", "tasks"].includes(page)} onPractice={startOmniPractice} />
           {searchOpen && (
             <CommandPalette lessons={lessons} initialQuery={searchQuery} onLesson={openLesson} onSmartPractice={startSmartPractice}
               onPractice={(item) => { setProgress((p) => ({ ...p, lastLessonId: item.id })); navigate(problemPath({ topicId: item.id, difficulty: 1, seed: Math.floor(Math.random() * 4294967296) })); }}
@@ -967,6 +985,10 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
 }
 function RotateIcon({ size = 18 }: { size?: number }) {
   return <GraduationCap size={size} />;
+}
+function LessonOmniContext({ lesson }: { lesson: Lesson }) {
+  useOmniQuestion({ id: `lesson:${lesson.id}`, title: lesson.title, prompt: `Pomóż mi zrozumieć: ${lesson.title}. Wzór z lekcji: ${lesson.formula}`, lessonHint: lesson.modes.eli5 });
+  return null;
 }
 function PageTitle({
   eyebrow,

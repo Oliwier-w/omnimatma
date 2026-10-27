@@ -5,7 +5,7 @@ test("dashboard navigation, directions and demos are visible without JavaScript"
   const page = await context.newPage();
   await page.goto(baseURL!);
   const nav = page.getByRole("navigation", { name: "Menu główne" });
-  await expect(nav.getByRole("link")).toHaveCount(6);
+  await expect(nav.getByRole("link")).toHaveCount(7);
   await expect(nav.getByRole("link", { name: "Zadania", exact: true })).toBeVisible();
   await expect(page.locator(".track-nav a")).toHaveCount(6);
   await expect(page.locator(".track-card")).toHaveCount(6);

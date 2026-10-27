@@ -49,6 +49,9 @@ import "./TasksCenter.css";
 import { problemPath, type ProblemLink } from "@/lib/problemLink";
 import { generateSmartPractice, smartPracticeTopicId, type SmartPracticeSpec } from "@/lib/smartMath";
 import SymbolTranslator from "./SymbolTranslator";
+import { useOmniKumpel, useOmniQuestion } from "./OmniKumpelContext";
+import { generateOmniPractice, omniPracticeTopicId } from "@/lib/omnikumpelEngine";
+import type { OmniPracticeSpec } from "@/lib/omnikumpelTypes";
 
 const LEVEL_OPTIONS: { id: MasterLevel | "all"; label: string }[] = [
   { id: "all", label: "Wszystkie" },
@@ -82,6 +85,7 @@ const DIFFICULTY_NAMES = [
 
 const MODE_OPTIONS = [
   { id: "single", label: "Pojedyncze zadanie" },
+  { id: "series5", label: "Seria 5" },
   { id: "series10", label: "Seria 10" },
   { id: "series20", label: "Seria 20" },
   { id: "infinite", label: "Nieskończoność" },
@@ -95,8 +99,13 @@ function createRound(
   difficulty: MasterDifficulty,
   seed: number,
   smart?: SmartPracticeSpec,
+  omni?: OmniPracticeSpec,
 ): Round {
   const base = generateMasterProblem(topic.id, difficulty, seed);
+  if (omni) {
+    const problem = generateOmniPractice(omni, seed, base.effectiveDifficulty);
+    return { ...base, problem, topic: { ...topic, label: "Podobne zadania · OmniKumpel" }, deepSteps: problem.steps.map((step) => `${step.explanation} Zapis kontrolny: ${step.expression}.`), seed };
+  }
   if (!smart) return { ...base, seed };
   const problem = generateSmartPractice(smart, seed, base.effectiveDifficulty);
   return { ...base, problem, topic: { ...topic, label: "Podobne zadania · Smart Math" }, deepSteps: problem.steps.map((step) => `${step.explanation} Zapis kontrolny: ${step.expression}.`), seed };
@@ -107,7 +116,7 @@ function prefersReducedMotion(): boolean {
 }
 
 function seriesTargetFor(mode: Mode): number {
-  return mode === "series10" ? 10 : mode === "series20" ? 20 : 0;
+  return mode === "series5" ? 5 : mode === "series10" ? 10 : mode === "series20" ? 20 : 0;
 }
 
 function topicCountLabel(count: number): string {
@@ -135,7 +144,7 @@ export default function TasksCenter({
   const requestedTopic = initialProblem?.topicId ?? initialTopicId;
   const initialTopic = catalog.find((topic) => topic.lessonId === requestedTopic) ?? catalog[0];
   const [round, setRound] = useState<Round | null>(() =>
-    initialTopic ? createRound(initialTopic, (initialProblem?.difficulty ?? 1) as MasterDifficulty, initialProblem?.seed ?? 20261025, initialProblem?.smart) : null,
+    initialTopic ? createRound(initialTopic, (initialProblem?.difficulty ?? 1) as MasterDifficulty, initialProblem?.seed ?? 20261025, initialProblem?.smart, initialProblem?.omni) : null,
   );
   const [activeTopicId, setActiveTopicId] = useState(initialTopic?.id ?? "");
   const [level, setLevel] = useState<MasterLevel | "all">("all");
@@ -155,6 +164,8 @@ export default function TasksCenter({
     message: string;
   } | null>(null);
   const [solution, setSolution] = useState(false);
+  const { revealed, reveal } = useOmniKumpel();
+  useEffect(() => { if (solution && round) reveal(`task:${round.problem.id}`); }, [solution, round, reveal]);
   const [deepOpen, setDeepOpen] = useState<boolean[]>([]);
   const [answered, setAnswered] = useState(false);
   const [creditStatus, setCreditStatus] = useState<
@@ -164,6 +175,7 @@ export default function TasksCenter({
   const nextRef = useRef<() => void>(() => {});
   const creditedRef = useRef<Set<string>>(new Set());
   const { setOpen: setScratchOpen } = useScratchpad();
+  useOmniQuestion(round ? { id: `task:${round.problem.id}`, title: round.topic.label, prompt: round.problem.prompt, problem: round.problem } : undefined);
 
   const levelTopics = useMemo(
     () => filterMasterTopics(catalog, level, "all"),
@@ -194,6 +206,8 @@ export default function TasksCenter({
   );
   const activeSmart = initialProblem?.smart && safeTopicChoice === smartPracticeTopicId(initialProblem.smart) ? initialProblem.smart : undefined;
   const customFor = (topic: MasterTopic) => activeSmart && topic.id === smartPracticeTopicId(activeSmart) ? activeSmart : undefined;
+  const activeOmni = initialProblem?.omni && safeTopicChoice === omniPracticeTopicId(initialProblem.omni) ? initialProblem.omni : undefined;
+  const omniFor = (topic: MasterTopic) => activeOmni && topic.id === omniPracticeTopicId(activeOmni) ? activeOmni : undefined;
 
   const seriesTarget = seriesTargetFor(mode);
   const modeLabel =
@@ -248,7 +262,7 @@ export default function TasksCenter({
     }
     const topic = candidates[0];
     applyRound(
-      createRound(topic, difficulty, randomMasterSeed(), customFor(topic)),
+      createRound(topic, difficulty, randomMasterSeed(), customFor(topic), omniFor(topic)),
       topic,
       true,
     );
@@ -264,7 +278,7 @@ export default function TasksCenter({
     const topic =
       candidates.find((item) => item.id === activeTopicId) ?? candidates[0];
     applyRound(
-      createRound(topic, difficulty, drawSeed(round?.seed), customFor(topic)),
+      createRound(topic, difficulty, drawSeed(round?.seed), customFor(topic), omniFor(topic)),
       topic,
       true,
     );
@@ -286,11 +300,11 @@ export default function TasksCenter({
       topic = candidates[(index + 1) % candidates.length];
     }
     let seed = drawSeed(round?.seed);
-    let next = createRound(topic, difficulty, seed, customFor(topic));
+    let next = createRound(topic, difficulty, seed, customFor(topic), omniFor(topic));
     let guard = 0;
     while (round && next.problem.id === round.problem.id && guard < 8) {
       seed = drawSeed(round.seed);
-      next = createRound(topic, difficulty, seed, customFor(topic));
+      next = createRound(topic, difficulty, seed, customFor(topic), omniFor(topic));
       guard++;
     }
     applyRound(next, topic, false);
@@ -342,7 +356,7 @@ export default function TasksCenter({
     setResult(checked);
     if (!checked.correct) return;
     setAnswered(true);
-    if (creditStatus === "none") {
+    if (creditStatus === "none" && !solution && !revealed.has(`task:${round.problem.id}`)) {
       if (creditedRef.current.has(round.problem.id)) {
         setCreditStatus("duplicate");
       } else {
@@ -390,7 +404,7 @@ export default function TasksCenter({
   }
   async function shareProblem() {
     if (!round) return;
-    const href = new URL(problemPath({ topicId: round.topic.id, difficulty: round.effectiveDifficulty, seed: round.seed, ...(customFor(round.topic) ? { smart: customFor(round.topic) } : {}) }), window.location.origin).href;
+    const href = new URL(problemPath({ topicId: round.topic.id, difficulty: round.effectiveDifficulty, seed: round.seed, ...(customFor(round.topic) ? { smart: customFor(round.topic) } : {}), ...(omniFor(round.topic) ? { omni: omniFor(round.topic) } : {}) }), window.location.origin).href;
     try {
       await navigator.clipboard.writeText(href);
       setShareFallback("");
@@ -677,7 +691,7 @@ export default function TasksCenter({
                           ? `+${round.effectiveDifficulty * 10} XP`
                           : creditStatus === "duplicate"
                             ? "Już zaliczone · bez dodatkowego XP"
-                            : ""}
+                             : revealed.has(`task:${round.problem.id}`) || solution ? "Rozwiązanie ujawnione · trening bez XP" : ""}
                       </span>
                     )}
                   </motion.div>

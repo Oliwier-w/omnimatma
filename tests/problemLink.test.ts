@@ -4,6 +4,22 @@ import { parseProblemLink, problemPath } from "../src/lib/problemLink";
 import { generateMasterProblem } from "../src/generators/masterGenerator";
 import { generateSmartPractice, smartPracticeTopicId, type SmartPracticeSpec } from "../src/lib/smartMath";
 import { lessonPath, readWorkspacePath, WORKSPACE_PATHS } from "../src/lib/workspaceRoutes";
+import { generateOmniPractice, omniPracticeTopicId } from "../src/lib/omnikumpelEngine";
+import type { OmniPracticeSpec } from "../src/lib/omnikumpelTypes";
+
+test("Omni families and five-task series round trip without breaking v1 links", () => {
+  for (const omni of [{ kind: "quadratic" }, { kind: "derivative" }, { kind: "matrix", operation: "inverse" }, { kind: "statistics", statistic: "all" }, { kind: "complex", operation: "divide" }] as OmniPracticeSpec[]) {
+    const topicId = omniPracticeTopicId(omni);
+    const path = problemPath({ topicId, difficulty: 3, seed: 42, omni, mode: "series5" });
+    const parsed = parseProblemLink(new URL(path, "https://example.test").searchParams, [topicId]);
+    assert.deepEqual(parsed.value?.omni, omni);
+    assert.equal(parsed.value?.mode, "series5");
+    assert.deepEqual(generateOmniPractice(parsed.value!.omni!, 42, 3), generateOmniPractice(omni, 42, 3));
+    const mixed = new URL(path, "https://example.test").searchParams;
+    mixed.set("practice", JSON.stringify({ kind: "linear-equation" }));
+    assert.equal(parseProblemLink(mixed, [topicId]).value, null);
+  }
+});
 
 test("workspace routes are real reversible paths", () => {
   for (const [page, path] of Object.entries(WORKSPACE_PATHS)) assert.equal(readWorkspacePath(path).page, page);

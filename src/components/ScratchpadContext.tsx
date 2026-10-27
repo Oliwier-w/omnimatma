@@ -16,14 +16,17 @@ const Context = createContext<{
   setAnswer: Dispatch<SetStateAction<string | undefined>>;
   size: ScratchpadSize;
   setSize: Dispatch<SetStateAction<ScratchpadSize>>;
+  notes: string;
+  setNotes: Dispatch<SetStateAction<string>>;
 } | null>(null);
 
 export function ScratchpadProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [answer, setAnswer] = useState<string>();
   const [size, setSize] = useState<ScratchpadSize>("half");
+  const [notes, setNotes] = useState("");
   return (
-    <Context.Provider value={{ open, setOpen, setAnswer, size, setSize }}>
+    <Context.Provider value={{ open, setOpen, setAnswer, size, setSize, notes, setNotes }}>
       {children}
       <Scratchpad
         open={open}
@@ -31,6 +34,8 @@ export function ScratchpadProvider({ children }: { children: ReactNode }) {
         answer={answer}
         size={size}
         onSizeChange={setSize}
+        notes={notes}
+        onNotesChange={setNotes}
       />
     </Context.Provider>
   );

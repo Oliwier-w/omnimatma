@@ -16,6 +16,7 @@ import { generateProblem, checkProblemAnswer, checkSteps } from "@/generators";
 import type { Lesson } from "@/lib/lesson";
 import { MathFormula } from "./MathText";
 import { useScratchpad, useScratchpadAnswer } from "./ScratchpadContext";
+import { useOmniKumpel, useOmniQuestion } from "./OmniKumpelContext";
 
 export default function InfinitePractice({
   lesson,
@@ -37,6 +38,9 @@ export default function InfinitePractice({
     message: string;
   } | null>(null);
   const [solution, setSolution] = useState(false);
+  const { revealed, reveal } = useOmniKumpel();
+  const assisted = solution || revealed.has(`task:${problem.id}`);
+  useEffect(() => { if (solution) reveal(`task:${problem.id}`); }, [solution, problem.id, reveal]);
   const [scratch, setScratch] = useState("");
   const [stepResults, setStepResults] = useState<
     { correct: boolean; message: string }[]
@@ -46,6 +50,7 @@ export default function InfinitePractice({
   const [credited, setCredited] = useState(false);
   const { open: scratchOpen, setOpen: setScratchOpen } = useScratchpad();
   useScratchpadAnswer(problem.answer);
+  useOmniQuestion({ id: `task:${problem.id}`, title: lesson.title, prompt: problem.prompt, problem });
   useEffect(() => {
     const insert = (event: Event) => {
       const value = (event as CustomEvent<string>).detail;
@@ -70,10 +75,10 @@ export default function InfinitePractice({
   function submit() {
     const checked = checkProblemAnswer(problem, input);
     setResult(checked);
-    if (!checked.correct && input.trim() && !answered && !solution) onMiss?.();
+    if (!checked.correct && input.trim() && !answered && !assisted) onMiss?.();
     if (checked.correct && !answered) {
       setAnswered(true);
-      if (!solution) {
+      if (!assisted) {
         const granted = onSolved(problem.id, difficulty);
         setCredited(granted);
         if (

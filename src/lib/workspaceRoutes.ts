@@ -1,6 +1,6 @@
-export type WorkspacePage = "home" | "path" | "tasks" | "lesson" | "tools" | "review" | "crash";
+export type WorkspacePage = "home" | "path" | "tasks" | "lesson" | "tools" | "review" | "crash" | "kumpel";
 export const WORKSPACE_PATHS = {
-  home: "/", path: "/sciezka", tasks: "/zadania", tools: "/laboratorium", review: "/powtorki", crash: "/sprawdzian",
+  home: "/", path: "/sciezka", tasks: "/zadania", tools: "/laboratorium", review: "/powtorki", crash: "/sprawdzian", kumpel: "/omnikumpel",
 } as const;
 export function lessonPath(id: string): string { return `/lekcja/${encodeURIComponent(id)}`; }
 export function readWorkspacePath(pathname: string): { page: WorkspacePage; lessonId?: string } {

@@ -14,7 +14,7 @@ test("native sidebar URLs, SSR and browser back/forward remain consistent", asyn
   page.on("console", (message) => { if (/hydration|hydrated|didn't match/i.test(message.text())) errors.push(message.text()); });
   const raw = await (await request.get("/")).text();
   const menu = raw.match(/<nav[^>]*aria-label="Menu główne"[^>]*>([\s\S]*?)<\/nav>/)?.[1] ?? "";
-  expect((menu.match(/href=/g) ?? []).length).toBe(6);
+  expect((menu.match(/href=/g) ?? []).length).toBe(7);
   expect(raw).toContain("Cztery perspektywy ułamka");
   await page.goto("/");
   await expect(page.locator(".resume-card")).toHaveCount(0);

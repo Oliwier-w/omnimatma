@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useState } from "react";
+import Link from "next/link";
 import katex from "katex";
 import type { Lesson } from "@/lib/lesson";
 import SymbolTranslator from "./SymbolTranslator";
@@ -100,6 +101,7 @@ function FormulaSheets({ lessons }: { lessons: Lesson[] }) {
       <p className="muted">
         Kliknij kartę, aby zobaczyć przykład i warunki użycia wzoru.
       </p>
+      <Link href="/omnikumpel" className="button" style={{ margin: "12px 0" }}>Moja ściąga · rozwiązania przypięte w OmniKumplu</Link>
       <div className="tool-tabs" aria-label="Kategorie wzorów">
         {["Wszystkie", ...new Set(formulae.map((f) => f.topic))].map((item) => (
           <button

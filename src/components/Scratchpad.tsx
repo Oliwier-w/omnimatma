@@ -6,6 +6,8 @@ import {
   useId,
   useRef,
   useState,
+  type Dispatch,
+  type SetStateAction,
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -14,6 +16,7 @@ import {
   ChevronRight,
   Maximize2,
   NotebookPen,
+  Bot,
   Pencil,
   Type,
   X,
@@ -27,6 +30,7 @@ import ScratchpadCanvas, {
 } from "./ScratchpadCanvas";
 import SmoothCalculator from "./SmoothCalculator";
 import "./Scratchpad.css";
+import { useOmniKumpel } from "./OmniKumpelContext";
 
 export type ScratchpadSize = "half" | "wide" | "full";
 
@@ -36,17 +40,21 @@ export default function Scratchpad({
   answer,
   size,
   onSizeChange,
+  notes,
+  onNotesChange: setNotes,
 }: {
   open: boolean;
   onClose: () => void;
   answer?: string;
   size: ScratchpadSize;
   onSizeChange: (size: ScratchpadSize) => void;
+  notes: string;
+  onNotesChange: Dispatch<SetStateAction<string>>;
 }) {
   const id = useId();
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<"notes" | "draw" | "calc">("notes");
-  const [notes, setNotes] = useState("");
+  const { openHelper } = useOmniKumpel();
   const [strokes, setStrokes] = useState<ScratchStroke[]>([]);
   const [textBlocks, setTextBlocks] = useState<ScratchText[]>([]);
   const [notice, setNotice] = useState("");
@@ -332,6 +340,8 @@ export default function Scratchpad({
                   </li>
                 ))}
               </ul>
+              <button type="button" className="scratchpad-check-button" disabled={!notes.trim()} onClick={() => { onClose(); openHelper("check"); }}><Bot size={15} /> Wyślij kroki do OmniKumpla</button>
+              <p>Przekazujemy tekst notatek lokalnie. Rysunek nie jest automatycznie rozpoznawany.</p>
             </div>
           </>
         ) : mode === "draw" ? (
