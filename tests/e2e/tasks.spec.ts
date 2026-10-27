@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 
 async function openTasks(page: Page) {
   await page.goto("/");
-  const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+  const menu = page.getByRole("button", { name: "Otwórz menu nawigacji", exact: true });
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne", exact: true })

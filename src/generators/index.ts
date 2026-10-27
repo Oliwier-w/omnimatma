@@ -1,6 +1,6 @@
-import { parse, type MathNode } from "mathjs";
-import { gcd, random, type Problem } from "./shared";
-import { checkAnswer } from "../lib/math";
+import { random, type Problem } from "./shared";
+import { validateMathAnswer } from "../lib/mathValidator";
+import { numericValue } from "../lib/math";
 import { fractionProblem } from "./fractions";
 import { matrixProblem } from "./matrices";
 import { complexProblem } from "./complex";
@@ -8,85 +8,26 @@ import { maturaLiczbyProblem } from "./maturaLiczby";
 import { maturaFunkcjeProblem } from "./maturaFunkcje";
 import { maturaGeometriaProblem } from "./maturaGeometria";
 import { cleanMathLatex } from "../lib/cleanMathLatex";
-import { classifyMistake } from "./mistakes";
 export type { Problem } from "./shared";
 export { checkAnswer, checkSteps } from "../lib/math";
 
-/** Final-answer validation; intermediate steps intentionally remain value-based. */
+/** One final-answer policy for practice and exams. Scratchpad checkpoints stay numeric. */
 export function checkProblemAnswer(
   problem: Problem,
   input: string,
-): ReturnType<typeof checkAnswer> {
-  const result = checkAnswer(input, problem.answer);
-  if (!result.correct) {
-    const message = classifyMistake(problem, input);
-    return message ? { correct: false, message } : result;
-  }
-  if (
-    !result.correct ||
-    !["fractions-meaning", "fractions-simplify", "fractions-mixed"].includes(
-      problem.generatorId,
-    )
-  )
-    return result;
-  // Inspect syntax, never evaluate arbitrary nodes. Parentheses and signed integers are harmless.
-  const unwrap = (node: MathNode): MathNode =>
-    node.type === "ParenthesisNode"
-      ? unwrap((node as unknown as { content: MathNode }).content)
-      : node;
-  const integer = (node: MathNode): number => {
-    const n = unwrap(node) as unknown as {
-      type: string;
-      value: number;
-      op: string;
-      args: MathNode[];
-    };
-    if (n.type === "ConstantNode" && Number.isSafeInteger(n.value))
-      return n.value;
-    if (
-      n.type === "OperatorNode" &&
-      n.args.length === 1 &&
-      ["+", "-"].includes(n.op)
-    )
-      return (n.op === "-" ? -1 : 1) * integer(n.args[0]);
-    return NaN;
-  };
-  let root = unwrap(parse(input));
-  // A sign may apply to the complete fraction, e.g. -(3/4).
-  while (root.type === "OperatorNode") {
-    const signed = root as unknown as { op: string; args: MathNode[] };
-    if (signed.args.length !== 1 || !["+", "-"].includes(signed.op)) break;
-    root = unwrap(signed.args[0]);
-  }
-  const node = root as unknown as {
-    type: string;
-    op: string;
-    args: MathNode[];
-  };
-  const [numerator, denominator] =
-    node.type === "OperatorNode" && node.op === "/" && node.args.length === 2
-      ? node.args.map(integer)
-      : [NaN, NaN];
-  if (
-    !Number.isSafeInteger(numerator) ||
-    !Number.isSafeInteger(denominator) ||
-    denominator === 0
-  ) {
-    return {
-      correct: false,
-      message:
-        "Zapisz wynik jako ułamek: całkowity licznik / całkowity niezerowy mianownik.",
-    };
-  }
-  if (
-    problem.generatorId !== "fractions-meaning" &&
-    (denominator < 0 || gcd(numerator, denominator) !== 1)
-  ) {
-    return {
-      correct: false,
-      message:
-        "Skróć ułamek do postaci nieskracalnej i zapisz dodatni mianownik.",
-    };
+): ReturnType<typeof validateMathAnswer> {
+  const expected = problem.answerKind === "set" && /^\[[^\[\]]*\]$/.test(problem.answer) ? `{${problem.answer.slice(1, -1)}}` : problem.answer;
+  const result = validateMathAnswer(input, expected, [
+    ...(problem.commonTraps ?? []),
+    ...(problem.mistakes ?? []).map(({ answer, message }) => ({ wrongAnswer: answer, explanation: message })),
+  ]);
+  if (result.method === "set" && problem.answerKind !== "set") {
+    try {
+      const value = numericValue(problem.answer) as { toArray?: () => unknown };
+      if (Array.isArray(value) || (value && typeof value.toArray === "function" && Array.isArray(value.toArray()))) {
+        return { status: "incorrect", correct: false, message: "To uporządkowany wektor lub macierz, nie zbiór rozwiązań. Zapisz elementy w nawiasach kwadratowych i zachowaj ich kolejność." };
+      }
+    } catch { /* The central validator already handles invalid expected answers. */ }
   }
   return result;
 }
@@ -179,5 +120,9 @@ export function generateProblem(
             : maturaGeometriaProblem;
   const problem = factory(generatorId, difficulty, seed, rng);
   problem.latex = cleanMathLatex(problem.latex);
+  problem.commonTraps = [
+    ...(problem.commonTraps ?? []),
+    ...(problem.mistakes ?? []).map(({ answer, message }) => ({ wrongAnswer: answer, explanation: message })),
+  ].filter((trap, index, traps) => traps.findIndex(other => other.wrongAnswer === trap.wrongAnswer) === index);
   return problem;
 }

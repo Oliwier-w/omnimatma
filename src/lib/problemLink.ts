@@ -14,7 +14,7 @@ const UINT32 = 4294967295;
 export function problemPath(value: ProblemLink): string {
   if (!value.topicId || !Number.isInteger(value.difficulty) || value.difficulty < 1 || value.difficulty > 5 || !Number.isSafeInteger(value.seed) || value.seed < 0 || value.seed > UINT32)
     throw new Error("Nieprawidłowe parametry linku do zadania.");
-  const params = new URLSearchParams({ v: "1", topic: value.topicId, difficulty: String(value.difficulty), seed: String(value.seed) });
+  const params = new URLSearchParams({ v: "2", topic: value.topicId, difficulty: String(value.difficulty), seed: String(value.seed) });
   if (value.smart) {
     if (value.omni) throw new Error("Link może zawierać tylko jeden typ treningu.");
     const spec = parseSmartPractice(value.smart);
@@ -34,7 +34,7 @@ export function problemPath(value: ProblemLink): string {
 export function parseProblemLink(params: Pick<URLSearchParams, "get" | "has">, knownTopics: readonly string[]): { value: ProblemLink | null; error?: string } {
   if (!["v", "topic", "difficulty", "seed", "practice", "omni", "mode"].some((key) => params.has(key))) return { value: null };
   const invalid = { value: null, error: "Ten link do zadania jest nieprawidłowy lub pochodzi z nieobsługiwanej wersji. Możesz wylosować nowe zadanie poniżej." };
-  if (params.get("v") !== "1") return invalid;
+  if (params.get("v") !== "2") return invalid;
   const topicId = params.get("topic") ?? "";
   const difficultyText = params.get("difficulty") ?? "";
   const seedText = params.get("seed") ?? "";

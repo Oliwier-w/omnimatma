@@ -15,7 +15,7 @@ function HelperPanel({ onPractice }: { onPractice: (spec: OmniPracticeSpec) => v
   useModalFocus(true);
   const reduced = useReducedMotion();
   return createPortal(<div className="ok-dock-backdrop" onMouseDown={(event) => { if (event.currentTarget === event.target) setHelperOpen(false); }}>
-    <motion.aside className="ok-dock-panel" role="dialog" aria-modal="true" aria-label="OmniKumpel — pomoc do zadania"
+    <motion.aside className="ok-dock-panel" role="dialog" aria-modal="true" aria-label="OmniKumpel AI — pomoc do zadania"
       initial={reduced ? false : { x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: "spring", stiffness: 320, damping: 32 }}
       onKeyDown={(event) => { if (event.key === "Escape" && !event.defaultPrevented) { event.stopPropagation(); setHelperOpen(false); } }}>
       <div className="ok-dock-heading"><span><Bot size={20} /> Pomoc bez gubienia wątku</span><button type="button" className="icon-button" aria-label="Zamknij pomoc OmniKumpla" onClick={() => setHelperOpen(false)}><X size={20} /></button></div>
@@ -27,8 +27,8 @@ export default function OmniKumpelDock({ onPractice, showTrigger = true }: { onP
   const { question, helperOpen, openHelper } = useOmniKumpel();
   const { setOpen: setScratchOpen } = useScratchpad();
   return <>
-    {showTrigger && <button type="button" className="ok-dock-trigger" disabled={!question} aria-label="Zapytaj OmniKumpel o ten krok" title="Zapytaj OmniKumpel o ten krok" aria-haspopup="dialog" aria-expanded={helperOpen}
-      onClick={() => { setScratchOpen(false); openHelper("tutor"); }}><Bot size={19} /><span>Zapytaj o ten krok</span><b>AI</b></button>}
+    {showTrigger && <button type="button" className="ok-dock-trigger" disabled={!question} aria-label="Zapytaj OmniKumpla o ten krok" title="🤖 Zapytaj OmniKumpla o ten krok" aria-haspopup="dialog" aria-expanded={helperOpen}
+      onClick={() => { setScratchOpen(false); openHelper("tutor"); }}><Bot size={19} /><span>🤖 Zapytaj OmniKumpla o ten krok</span><b>AI</b></button>}
     {helperOpen && <HelperPanel onPractice={onPractice} />}
   </>;
 }

@@ -31,6 +31,7 @@ export function complexProblem(
     answer = "",
     formula = "",
     detail = "";
+  const commonTraps: { wrongAnswer: string; explanation: string }[] = [];
   switch (id) {
     case "complex-parts":
       prompt = `Dla z=${z} podaj wektor [część rzeczywista, część urojona].`;
@@ -73,6 +74,10 @@ export function complexProblem(
       );
       formula = "Rozmnóż nawiasy i użyj i²=−1: (a+bi)(c+di)=(ac−bd)+(ad+bc)i.";
       detail = `Po uwzględnieniu mianownika ${denom} liczniki wynoszą ${a * c - b * d} i ${a * d + b * c}.`;
+      if (b * d !== 0) commonTraps.push({
+        wrongAnswer: complex(fraction(a * c + b * d, denom), fraction(a * d + b * c, denom)),
+        explanation: "Przyjęto i²=+1. Ponieważ i²=−1, część rzeczywista iloczynu wynosi ac−bd, a nie ac+bd.",
+      });
       break;
     case "complex-divide": {
       const norm = c * c + d * d;
@@ -117,6 +122,13 @@ export function complexProblem(
       expression = `${z}^${n}`;
       expanded = Array.from({ length: n }, () => z).join("*");
       answer = complex(fraction(real, denom ** n), fraction(imag, denom ** n));
+      let wrongReal = 1, wrongImag = 0;
+      for (let k = 0; k < n; k++)
+        [wrongReal, wrongImag] = [wrongReal * a + wrongImag * b, wrongReal * b + wrongImag * a];
+      if (wrongReal !== real || wrongImag !== imag) commonTraps.push({
+        wrongAnswer: complex(fraction(wrongReal, denom ** n), fraction(wrongImag, denom ** n)),
+        explanation: "W kolejnych mnożeniach użyto i²=+1. Każda para czynników i daje −1, więc trzeba odejmować iloczyn części urojonych.",
+      });
       formula =
         "Potęga naturalna jest iloczynem jednakowych czynników; przy każdym mnożeniu i²=−1.";
       detail = `Wykonaj ${n - 1} mnożeń, grupując osobno części rzeczywiste i urojone.`;
@@ -146,7 +158,7 @@ export function complexProblem(
       detail = `Kwadrat modułu dzielnika wynosi ${c * c + d * d}>0, więc rozwiązanie jest jednoznaczne.`;
     }
   }
-  return finish(
+  const problem = finish(
     id,
     level,
     seed,
@@ -164,4 +176,6 @@ export function complexProblem(
       `Wynik: ${answer}. Podstaw go do pierwotnego działania, aby sprawdzić.`,
     ],
   );
+  problem.commonTraps = commonTraps;
+  return problem;
 }

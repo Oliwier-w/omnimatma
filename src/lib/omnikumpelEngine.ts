@@ -2,6 +2,7 @@ import { parse, type MathNode } from "mathjs";
 import { random, type Problem } from "../generators/shared";
 import { generateSmartPractice, parseSmartPractice, smartPracticeTopicId, solveSmartMath } from "./smartMath";
 import type { OmniLineCheck, OmniPracticeSpec, OmniSolution, OmniStep } from "./omnikumpelTypes";
+import { formatCleanLatex } from "./formatCleanLatex";
 
 /** Local, exact, deliberately bounded notation (not a general CAS).
  * Integers / fractions only; decimals and scientific notation are rejected.
@@ -151,8 +152,8 @@ function tex(s: string): string {
   if (/[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/.test(s)) return literalLatex(s);
   try {
     // Trusted/generated expressions only, or expressions already validated above.
-    if (s.includes("=")) return s.split("=").map(side => parse(side).toTex({ parenthesis: "keep", implicit: "hide" })).join(" = ");
-    return parse(s).toTex({ parenthesis: "keep", implicit: "hide" });
+    if (s.includes("=")) return formatCleanLatex(s.split("=").map(side => parse(side).toTex({ parenthesis: "keep", implicit: "hide" })).join(" = "));
+    return formatCleanLatex(parse(s).toTex({ parenthesis: "keep", implicit: "hide" }));
   } catch { return literalLatex(s); }
 }
 const hints: Record<NonNullable<OmniSolution["family"]>, string> = {
@@ -448,12 +449,16 @@ export function generateOmniPractice(spec: OmniPracticeSpec, seed: number, diffi
   const integer = () => rng(-range, range);
   let source: string, prompt: string, answer: string, expressions: string[], explanations: string[];
   let symbolic: string | undefined;
+  const commonTraps: NonNullable<Problem["commonTraps"]> = [];
   if (spec.kind === "quadratic") {
     const r1 = integer(), r2 = r1 + rng(1, range), a = rng(1, difficulty + 1);
     source = `${a}*x^2+(${-a * (r1 + r2)})*x+(${a * r1 * r2})=0`;
     answer = `[${r1},${r2}]`;
-    prompt = `Rozwiąż ${source}. Podaj wektor [mniejszy pierwiastek,większy pierwiastek].`;
-    expressions = [answer]; explanations = ["Rozłóż wielomian na czynniki liniowe lub oblicz wyróżnik; uporządkuj pierwiastki rosnąco."];
+    prompt = `Rozwiąż ${source}. Podaj oba pierwiastki (np. x=2 lub x=3); kolejność nie ma znaczenia.`;
+    expressions = [answer]; explanations = ["Rozłóż wielomian na czynniki liniowe lub oblicz wyróżnik; wypisz oba pierwiastki."];
+    commonTraps.push({ wrongAnswer: `[${-r2},${-r1}]`, explanation: "We wzorze na pierwiastki występuje −b, nie b. Zgubiony minus przy współczynniku liniowym zmienia znaki pierwiastków." });
+    const wrongDelta = a * a * (r1 + r2) ** 2 + 4 * a * a * r1 * r2;
+    if (wrongDelta >= 0) commonTraps.push({ wrongAnswer: `[(${a * (r1 + r2)}-sqrt(${wrongDelta}))/${2 * a},(${a * (r1 + r2)}+sqrt(${wrongDelta}))/${2 * a}]`, explanation: "Wyróżnik to Δ = b² − 4ac. Wstawienie plusa przed 4ac daje inny zbiór pierwiastków." });
   } else if (spec.kind === "derivative") {
     const degree = rng(2, Math.min(8, difficulty + 2));
     const p = Array.from({ length: degree + 1 }, () => q(BigInt(integer()))); p[degree] = q(BigInt(rng(1, range)));
@@ -469,11 +474,28 @@ export function generateOmniPractice(spec: OmniPracticeSpec, seed: number, diffi
   } else {
     if (spec.kind === "matrix") {
       let a: number[][];
-      do { a = [[integer(), integer()], [integer(), integer()]]; } while (spec.operation === "inverse" && a[0][0] * a[1][1] === a[0][1] * a[1][0]);
+      if (spec.operation === "inverse" && difficulty <= 3) {
+        const u = rng(1, difficulty + 1), v = rng(1, difficulty + 1);
+        a = [[1, u], [v, 1 + u * v]]; // det = 1: integral inverse by construction.
+      } else {
+        a = [[integer(), integer()], [integer(), integer()]];
+        if (spec.operation === "inverse") a = [[Math.abs(a[0][1]) + rng(1, difficulty), a[0][1]], [a[1][0], Math.abs(a[1][0]) + rng(1, difficulty)]];
+      }
       const b = [[integer(), integer()], [integer(), integer()]];
       source = spec.operation === "inverse" ? `inv(${JSON.stringify(a)})` : spec.operation === "transpose" ? `transpose(${JSON.stringify(a)})` : `${JSON.stringify(a)}${spec.operation === "add" ? "+" : "*"}${JSON.stringify(b)}`;
     } else if (spec.kind === "complex") {
-      const z = `(${integer()}+(${integer()})*i)`, w = `(${rng(1, range)}+(${integer()})*i)`;
+      let zr = integer(), zi = integer();
+      const wr = rng(1, range), wi = integer();
+      if (difficulty <= 3 && spec.operation === "divide") {
+        const qr = integer(), qi = integer();
+        zr = wr * qr - wi * qi; zi = wr * qi + wi * qr;
+      }
+      if (difficulty <= 3 && spec.operation === "modulus") {
+        const k = rng(1, difficulty + 1);
+        zr = 3 * k * (rng(0, 1) ? 1 : -1); zi = 4 * k * (rng(0, 1) ? 1 : -1);
+      }
+      const z = `(${zr}+(${zi})*i)`, w = `(${wr}+(${wi})*i)`;
+      if (spec.operation === "multiply") commonTraps.push({ wrongAnswer: `${zr * wr + zi * wi}+(${zr * wi + zi * wr})*i`, explanation: "Iloczyn części urojonych zawiera i² = −1, nie +1. Część rzeczywista to ac − bd." });
       source = spec.operation === "conjugate" ? `conj(${z})` : spec.operation === "modulus" ? `abs(${z})` : `${z}${spec.operation === "add" ? "+" : spec.operation === "multiply" ? "*" : "/"}${w}`;
     } else {
       const xs = Array.from({ length: rng(3, difficulty + 4) }, integer);
@@ -487,7 +509,7 @@ export function generateOmniPractice(spec: OmniPracticeSpec, seed: number, diffi
   }
   const family = spec.kind === "matrix" || spec.kind === "complex" ? `${spec.kind}-${spec.operation}` : spec.kind === "statistics" ? `${spec.kind}-${spec.statistic}` : spec.kind;
   const hint = hints[spec.kind];
-  return { id: `omni-${family}-${seed}-${difficulty}`, generatorId: omniPracticeTopicId(spec), difficulty, prompt, latex: tex(source), answer,
+  return { id: `omni-${family}-${seed}-${difficulty}`, generatorId: omniPracticeTopicId(spec), difficulty, prompt, latex: tex(source), answer, commonTraps, ...(spec.kind === "quadratic" ? { answerKind: "set" as const } : {}),
     hints: [hint, spec.kind === "derivative" ? "Zastosuj regułę potęgową, a dopiero później podstaw punkt." : "Wykonuj operacje dokładnie na ułamkach; zachowaj podaną kolejność elementów.", `${symbolic ? `Pochodna: ${symbolic}. ` : ""}Dokładny wynik: ${answer}.`],
     steps: expressions.map((expression, i) => ({ expression, explanation: explanations[i] })) };
 }

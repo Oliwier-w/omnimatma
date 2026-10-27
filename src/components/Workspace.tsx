@@ -29,6 +29,7 @@ import {
   FunctionSquare,
   Ruler,
   Bot,
+  Archive,
 } from "lucide-react";
 import type { Lesson } from "@/lib/lesson";
 import {
@@ -48,6 +49,7 @@ import TasksRoute from "./TasksRoute";
 import { isReviewDue } from "@/lib/review";
 import CommandPalette from "./CommandPalette";
 import ProfileDialog from "./ProfileDialog";
+import BackupDialog from "./BackupDialog";
 import { DashboardCircleDemo, DashboardPerspectives } from "./DashboardDemos";
 import { LessonLinksProvider } from "./WikiLink";
 import CrashCourse from "./CrashCourse";
@@ -214,6 +216,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
   const [searchQuery, setSearchQuery] = useState("");
   const [mobile, setMobile] = useState(false);
   const [settings, setSettings] = useState(false);
+  const [backupOpen, setBackupOpen] = useState(false);
   const [storageError, setStorageError] = useState(false);
   const [trackLevel, setTrackLevel] = useState("all");
   const [toolTab, setToolTab] = useState<"formula" | "matrix" | "graph" | "exam" | "symbols">("formula");
@@ -249,6 +252,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
       if (e.key === "Escape") {
         setSearchOpen(false);
         setSettings(false);
+        setBackupOpen(false);
         setMobile(false);
       }
     };
@@ -267,6 +271,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
     setScratchOpen(false);
     setMobile(false);
     setSearchOpen(false);
+    setBackupOpen(false);
     setMode("eli5");
     setHelperOpen(false);
   };
@@ -306,7 +311,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
     { page: "home" as Page, label: "Twoja przestrzeń", icon: Home },
     { page: "path" as Page, label: "Ścieżka nauki", icon: Network },
     { page: "tasks" as Page, label: "Zadania", icon: Dumbbell },
-    { page: "kumpel" as Page, label: "OmniKumpel", icon: Bot },
+    { page: "kumpel" as Page, label: "OmniKumpel AI", icon: Bot },
     { page: "review" as Page, label: "Powtórki", icon: RotateIcon },
     { page: "tools" as Page, label: "Laboratorium", icon: Wrench },
     { page: "crash" as Page, label: "Sprawdzian jutro", icon: Zap },
@@ -376,19 +381,24 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
             </nav>
             <div className="sidebar-divider" />
             <span className="nav-label">ODKRYWAJ MATEMATYKĘ</span>
-            <div className="track-nav">
-              {tracks.map((t) => (
-                <Link
-                  key={t.key}
-                  href={lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning")}
-                  onNavigate={followLink(lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning"))}
-                >
-                  <span className={`tiny-dot ${t.color}`} />
-                  {t.label}
-                  <ChevronRight size={14} />
-                </Link>
-              ))}
-            </div>
+            <nav aria-label="Odkrywaj matematykę">
+              <div className="track-nav">
+                {tracks.map((t) => (
+                  <Link
+                    key={t.key}
+                    href={lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning")}
+                    onNavigate={followLink(lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning"))}
+                  >
+                    <span className={`tiny-dot ${t.color}`} />
+                    {t.label}
+                    <ChevronRight size={14} />
+                  </Link>
+                ))}
+              </div>
+              <Link className="track-nav-all" href="/sciezka" onNavigate={followLink("/sciezka")}>
+                Zobacz wszystkie 60 lekcji <ArrowRight size={14} />
+              </Link>
+            </nav>
             <div className="sidebar-bottom">
               <div className="sidebar-note">
                 <Sparkles size={19} />
@@ -426,7 +436,8 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
               <div className="breadcrumb">
                 <button
                   className="icon-button mobile-menu"
-                  aria-label="Otwórz menu"
+                  aria-label="Otwórz menu nawigacji"
+                  aria-expanded={mobile}
                   onClick={() => setMobile(true)}
                 >
                   <Menu size={21} />
@@ -467,6 +478,16 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                   <Flame size={16} />
                   {streak(progress.activity)} <span>dni nauki</span>
                 </span>
+                <button
+                  type="button"
+                  className="icon-button backup-trigger"
+                  aria-label="Kopia zapasowa postępów"
+                  aria-haspopup="dialog"
+                  aria-expanded={backupOpen}
+                  onClick={() => { setSearchOpen(false); setSettings(false); setBackupOpen(true); }}
+                >
+                  <Archive size={18} />
+                </button>
                 <span className="topbar-separator" />
                 <button
                   className="icon-button"
@@ -521,7 +542,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                             <br />
                             <span>W końcu po Twojemu.</span>
                           </h1>
-                          <div className="hero-resume" aria-label="Twój następny krok">
+                          <div className="hero-resume">
                             {progress.xp > 0 ? <p title={resumeLesson?.title}>Wróć do nauki: <strong>{resumeLesson?.title}</strong></p> : <p>Nie musisz mieć „ścisłego umysłu”. Wystarczy ciekawość.</p>}
                           </div>
                           <button
@@ -550,7 +571,15 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                               <span> XP</span>
                             </strong>
                           </div>
-                          <div className="mini-progress">
+                          <div
+                            className="mini-progress"
+                            role="progressbar"
+                            aria-label="Postęp do następnego poziomu"
+                            aria-valuenow={(progress.xp % 500) / 5}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuetext={`${progress.xp % 500} z 500 XP do poziomu ${level + 1}`}
+                          >
                             <div
                               style={{ width: `${(progress.xp % 500) / 5}%` }}
                             />
@@ -668,7 +697,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                       </div>
                       <section className="panel crash-entry">
                         <div className="crash-entry-icon"><Zap size={24} /></div>
-                        <div><span className="eyebrow">MNIEJ PANIKI. WIĘCEJ KONKRETÓW.</span><h2>Kolokwium / Sprawdzian jutro</h2><p>Wzory, pułapki i szybki test z wybranych działów — w jednym miejscu.</p></div>
+                        <div><span className="eyebrow">MNIEJ PANIKI. WIĘCEJ KONKRETÓW.</span><h2>Kolokwium / Sprawdzian jutro</h2><p>Wzory, pułapki i szybki test z wybranych działów — w jednym miejscu.</p><Link className="text-button crash-rescue-link" href="/sprawdzian">Uruchom tryb ratunkowy →</Link></div>
                         <button className="button primary" onClick={() => jump("crash")}>Ułóż szybką powtórkę <ArrowRight size={16} /></button>
                       </section>
                       <footer className="page-footer">
@@ -968,6 +997,26 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
               )}
             </main>
           </div>
+          <nav className="mobile-bottom-bar" aria-label="Nawigacja mobilna">
+            {[
+              { href: "/", label: "Start", icon: Home, page: "home" },
+              { href: "/sciezka", label: "Ścieżka", icon: Network, page: "path" },
+              { href: "/zadania", label: "Zadania", icon: Dumbbell, page: "tasks" },
+              { href: "/omnikumpel", label: "OmniKumpel", icon: Bot, page: "kumpel" },
+              { href: "/sprawdzian", label: "Sprawdzian", icon: Zap, page: "crash" },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                onNavigate={followLink(item.href)}
+                className={page === item.page ? "active" : ""}
+                aria-current={page === item.page ? "page" : undefined}
+              >
+                <item.icon size={19} aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </nav>
           <OmniKumpelDock showTrigger={["lesson", "tasks"].includes(page)} onPractice={startOmniPractice} />
           {searchOpen && (
             <CommandPalette lessons={lessons} initialQuery={searchQuery} onLesson={openLesson} onSmartPractice={startSmartPractice}
@@ -977,6 +1026,9 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
           )}
           {settings && (
             <ProfileDialog progress={progress} onChange={setProgress} onClose={() => setSettings(false)} />
+          )}
+          {backupOpen && (
+            <BackupDialog progress={progress} onChange={setProgress} onClose={() => setBackupOpen(false)} />
           )}
         </div>
       </MotionConfig>

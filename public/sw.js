@@ -1,5 +1,5 @@
 /* Increment VERSION when publishing a new offline shell. No user answers are cached. */
-const VERSION = "omnimatma-v4-omnikumpel";
+const VERSION = "omnimatma-v5-validator";
 const SHELL = `${VERSION}-shell`;
 const PAGES = `${VERSION}-pages`;
 const ASSETS = `${VERSION}-assets`;

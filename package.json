@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "check": "npm run typecheck && npm test",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:stress": "tsx scripts/stress-generators.ts",
+    "test:smoke": "playwright test smoke.spec.ts"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

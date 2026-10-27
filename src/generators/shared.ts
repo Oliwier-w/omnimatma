@@ -1,4 +1,5 @@
 import { parse } from "mathjs";
+import { formatCleanLatex } from "../lib/formatCleanLatex";
 
 export type Problem = {
   id: string;
@@ -7,10 +8,12 @@ export type Problem = {
   prompt: string;
   latex: string;
   answer: string;
+  answerKind?: "value" | "set";
   hints: string[];
   steps: { expression: string; explanation: string }[];
   /** Generated from real operands, never inferred from the displayed prompt. */
   mistakes?: { answer: string; message: string }[];
+  commonTraps?: { wrongAnswer: string; explanation: string }[];
 };
 export function random(seed: number) {
   let state = seed >>> 0;
@@ -46,18 +49,22 @@ export function finish(
   explanations: string[],
   hints: string[],
 ): Problem {
-  const latex = parse(expressions[0]).toTex({ parenthesis: "keep" });
+  const latex = formatCleanLatex(parse(expressions[0]).toTex({ parenthesis: "keep" }));
   return {
     id: `${generatorId}-${difficulty}-${seed}`,
     generatorId,
     difficulty,
-    prompt,
+    prompt: cleanGeneratedText(prompt),
     latex,
-    answer,
-    hints,
+    answer: cleanGeneratedText(answer),
+    hints: hints.map(cleanGeneratedText),
+    commonTraps: [],
     steps: expressions.map((expression, i) => ({
-      expression,
-      explanation: explanations[i],
+      expression: cleanGeneratedText(expression),
+      explanation: cleanGeneratedText(explanations[i]),
     })),
   };
 }
+
+/** A sign-only display normalization is also safe for executable numeric steps. */
+export const cleanGeneratedText = (text: string): string => text.replace(/\+\s*-\s*(?=[\d(])/g, "- ");

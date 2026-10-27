@@ -8,3 +8,7 @@
 .ok-dock-heading > span { display: inline-flex; align-items: center; gap: 9px; color: var(--accent); }
 @media (max-width: 650px) { .ok-dock-trigger { right: 12px; bottom: 12px; padding: 11px 12px; } .ok-dock-panel { padding-right: 14px; padding-left: 14px; } .ok-dock-heading { margin-right: -14px; margin-left: -14px; padding-right: 14px; padding-left: 14px; } }
 @media (prefers-reduced-motion: reduce) { .ok-dock-trigger { transition: none; } .ok-dock-trigger:hover { transform: none; } }
+
+@media (max-width: 768px) {
+  .ok-dock-trigger { right: 12px; bottom: 72px; }
+}

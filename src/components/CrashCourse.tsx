@@ -313,7 +313,7 @@ export default function CrashCourse({
                   {test.finished && (
                     <div className="crash-solution">
                       <p
-                        className={results[index].correct ? "success" : "error"}
+                        className={results[index].correct ? "success" : results[index].status === "trap" ? "trap-feedback" : "error"}
                       >
                         {results[index].message}
                       </p>

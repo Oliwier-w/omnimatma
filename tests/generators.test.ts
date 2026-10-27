@@ -342,18 +342,22 @@ test("checker rejects malicious, nonfinite, oversized and unsupported input", ()
   assert.throws(() => generateProblem("matrix-add", 1, Infinity));
 });
 
-test("final fraction answers enforce the requested representation, not just equality", () => {
+test("equivalent unsimplified fractions pass with a friendly simplification hint", () => {
   const simplify = {
     ...generateProblem("fractions-simplify", 1, 1),
     answer: "-3/4",
   };
   for (const input of ["-3/4", "(-3)/(4)", "-(3/4)", "((-3/4))"])
     assert.equal(checkProblemAnswer(simplify, input).correct, true, input);
-  for (const input of ["-6/8", "3/-4", "-0.75", "-(1+2)/4", "(-3/4)*1"])
-    assert.equal(checkProblemAnswer(simplify, input).correct, false, input);
+  for (const input of ["-6/8", "3/-4", "-0.75", "-0,75", "-(1+2)/4", "(-3/4)*1"])
+    assert.equal(checkProblemAnswer(simplify, input).correct, true, input);
+  assert.equal(checkProblemAnswer(simplify, "-6/8").status, "correct_unsimplified");
+  assert.match(checkProblemAnswer(simplify, "-6/8").message, /najprostszej postaci.*-3\/4/);
   const mixed = { ...generateProblem("fractions-mixed", 1, 1), answer: "7/3" };
-  for (const input of ["14/6", "2+1/3", "7/-3", "[7/3]"])
+  for (const input of ["7/-3", "[7/3]"])
     assert.equal(checkProblemAnswer(mixed, input).correct, false, input);
+  for (const input of ["14/6", "2+1/3"])
+    assert.equal(checkProblemAnswer(mixed, input).correct, true, input);
   assert.equal(checkProblemAnswer(mixed, "(7)/(3)").correct, true);
   const meaning = {
     ...generateProblem("fractions-meaning", 1, 1),
@@ -361,8 +365,10 @@ test("final fraction answers enforce the requested representation, not just equa
   };
   for (const input of ["1/2", "2/4", "-1/-2", "-(-1/2)"])
     assert.equal(checkProblemAnswer(meaning, input).correct, true, input);
-  for (const input of ["0.5", "sqrt(1/4)", "1/0", "1/3"])
+  for (const input of ["1/0", "1/3"])
     assert.equal(checkProblemAnswer(meaning, input).correct, false, input);
+  for (const input of ["0.5", "sqrt(1/4)"])
+    assert.equal(checkProblemAnswer(meaning, input).correct, true, input);
   const arithmetic = {
     ...generateProblem("fractions-add", 1, 1),
     answer: "1/2",

@@ -52,7 +52,7 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
   const { reveal } = useOmniKumpel();
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<OmniKumpelMode>(initialMode);
-  const [input, setInput] = useState(() => (context?.prompt ?? "").slice(0, 600));
+  const [input, setInput] = useState(() => (context?.prompt ?? "").slice(0, 1500));
   const [work, setWork] = useState(() => initialMode === "check" ? scratchpadNotes : "");
   const [solution, setSolution] = useState<OmniSolution | null>(null);
   const [checks, setChecks] = useState<OmniLineCheck[] | null>(null);
@@ -83,7 +83,7 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
   function clearResult() {
     cancelAI(); setSolution(null); setChecks(null); setAiText(""); setAiError(""); setStatus("");
   }
-  function changeInput(next: string) { clearResult(); setInput(next.slice(0, 600)); }
+  function changeInput(next: string) { clearResult(); setInput(next.slice(0, 1500)); }
   function changeMode(next: OmniKumpelMode) {
     cancelAI(); setAiText(""); setAiError(""); setChecks(null); setMode(next);
   }
@@ -108,7 +108,7 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
     if (contextId.current === context?.id) return;
     contextId.current = context?.id;
     controller.current?.abort(); controller.current = null; fileVersion.current++;
-    setPending(null); setInput((context?.prompt ?? "").slice(0, 600)); setWork("");
+    setPending(null); setInput((context?.prompt ?? "").slice(0, 1500)); setWork("");
     setSolution(null); setChecks(null); setAiText(""); setAiError(""); setImage(null); setOcrDraft(null); setImageError(""); setStatus("");
   }, [context?.id, context?.prompt]);
 
@@ -139,7 +139,7 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
     try {
       const response = await requestOmniAI({ settings, mode: kind, ...(kind === "ocr" ? { image: image! } : { input: solution!.normalized }) }, request.signal);
       if (request.signal.aborted || controller.current !== request) return;
-      if (kind === "ocr") setOcrDraft(response.text.slice(0, 600)); else setAiText(response.text);
+      if (kind === "ocr") setOcrDraft(response.text.slice(0, 1500)); else setAiText(response.text);
     } catch {
       if (!request.signal.aborted) setAiError("Nie udało się uzyskać odpowiedzi AI. Sprawdź połączenie, klucz i model. Lokalny solver nadal działa.");
     } finally {
@@ -200,11 +200,11 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
     if (mode === "solver" && solved && context?.problem && input === context.prompt) reveal(context.id);
   }, [mode, solved, context?.id, context?.problem, context?.prompt, input, reveal]);
 
-  return <motion.section className={`ok-root${compact ? " ok-compact" : ""}`} aria-label="OmniKumpel" onPaste={paste}
+  return <motion.section className={`ok-root${compact ? " ok-compact" : ""}`} aria-label="OmniKumpel AI" onPaste={paste}
     initial={false} animate={{ opacity: 1 }} transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 240, damping: 28 }}>
     <header className="ok-header">
       <div className="ok-brand-icon"><Sparkles aria-hidden="true" size={25} /></div>
-      <div className="ok-heading"><span className="ok-eyebrow">TWÓJ MATEMATYCZNY PARTNER</span><h1>OmniKumpel</h1><p>Rozumiesz więcej. Liczysz samodzielnie.</p></div>
+      <div className="ok-heading"><span className="ok-eyebrow">TWÓJ MATEMATYCZNY PARTNER</span><h1>OmniKumpel AI</h1><p>Rozumiesz więcej. Liczysz samodzielnie.</p></div>
       <button type="button" className="ok-icon" aria-label="Ustawienia AI" aria-expanded={settingsOpen} aria-controls={`${uid}-settings`} onClick={() => setSettingsOpen(!settingsOpen)}><Settings2 size={20} /></button>
       {onClose && <button type="button" className="ok-icon" aria-label="Zamknij OmniKumpla" onClick={onClose}><X size={20} /></button>}
     </header>
@@ -231,8 +231,8 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
         {mode === "tutor" && context?.lessonHint && !context.problem && input === context.prompt && <div className="ok-lesson-hint"><p className="ok-small">Objaśnienie z lekcji — do sprawdzenia rachunków wpisz konkretny przykład.</p><MathText text={context.lessonHint} /></div>}
         <form onSubmit={e => { e.preventDefault(); if (mode === "check") check(); else solve(); }}>
           <label htmlFor={`${uid}-input`}>Co dziś rozgryzamy?</label>
-          <textarea id={`${uid}-input`} aria-label="Treść zadania dla OmniKumpla" value={input} maxLength={600} rows={4} placeholder="Np. x^2-5*x+6=0" onChange={e => changeInput(e.target.value)} />
-          <div className="ok-input-meta"><span>Zapisz działania za pomocą +, −, *, /.</span><span>{input.length}/600</span></div>
+          <textarea id={`${uid}-input`} aria-label="Treść zadania dla OmniKumpla" value={input} maxLength={1500} rows={4} placeholder="Np. x^2-5*x+6=0" onChange={e => changeInput(e.target.value)} />
+          <div className="ok-input-meta"><span>Zapisz działania za pomocą +, −, *, /.</span><span>{input.length}/1500</span></div>
           <details className="ok-small"><summary>Obsługiwany zapis i granice</summary><p>Ułamki a/b; równania liniowe i kwadratowe (pierwiastki rzeczywiste); macierze 2×2; zespolone; derivative(x^3-2*x,x); stats([1,2,3,4]) lub mean, median, variance, std. Wariancja populacyjna. Do 50 obserwacji i potęg 8. Liczby dziesiętne zapisz jako ułamek. Nie rozwiązuję dowolnych zadań tekstowych ani dowodów.</p></details>
           <div className="ok-templates" aria-label="Przykładowe zadania">{TEMPLATES.map(([label, value]) => <button key={value} type="button" onClick={() => changeInput(value)}>{label}</button>)}
             <button type="button" onClick={() => { changeMode("tutor"); if (!input.trim()) changeInput("3/4+1/2"); }}>Wytłumacz jak dla 5-latka</button>
@@ -282,7 +282,7 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
         {mode === "tutor" ? <p>Odczyt AI jest wyłączony w korepetytorze, aby nie ujawnić odpowiedzi. Przepisz zadanie albo przejdź do Solver.</p> : <button type="button" disabled={!!pending || offline} onClick={() => void callAI("ocr")}>Odczytaj zdjęcie przez AI</button>}
         <button type="button" onClick={() => { cancelAI(); fileVersion.current++; setImage(null); setOcrDraft(null); }}>Usuń zdjęcie</button>
       </div>}
-      {ocrDraft !== null && mode !== "tutor" && <div className="ok-ocr"><label htmlFor={`${uid}-ocr`}>Odczytana treść zdjęcia — sprawdź i popraw zapis</label><textarea id={`${uid}-ocr`} aria-label="Odczytana treść zdjęcia" value={ocrDraft} maxLength={600} rows={4} onChange={e => setOcrDraft(e.target.value)} /><button type="button" className="ok-primary" disabled={!ocrDraft.trim()} onClick={() => { changeInput(ocrDraft); changeMode("solver"); solve(ocrDraft); }}>Potwierdź treść i rozwiąż lokalnie</button></div>}
+      {ocrDraft !== null && mode !== "tutor" && <div className="ok-ocr"><label htmlFor={`${uid}-ocr`}>Odczytana treść zdjęcia — sprawdź i popraw zapis</label><textarea id={`${uid}-ocr`} aria-label="Odczytana treść zdjęcia" value={ocrDraft} maxLength={1500} rows={4} onChange={e => setOcrDraft(e.target.value)} /><button type="button" className="ok-primary" disabled={!ocrDraft.trim()} onClick={() => { changeInput(ocrDraft); changeMode("solver"); solve(ocrDraft); }}>Potwierdź treść i rozwiąż lokalnie</button></div>}
     </section>
     {pending && <div className="ok-notice" role="status">{pending === "ocr" ? "Odczytuję zdjęcie…" : "Czekam na komentarz AI…"}<button type="button" onClick={cancelAI}>Anuluj żądanie AI</button></div>}
     {aiError && <p className="ok-error" role="alert">{aiError}</p>}

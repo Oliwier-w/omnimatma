@@ -750,7 +750,7 @@ function ExamLab({ lessons }: { lessons: Lesson[] }) {
           </label>
           {exam.finished && (
             <div>
-              <p className={results[index].correct ? "success" : "error"}>
+              <p className={results[index].correct ? "success" : results[index].status === "trap" ? "trap-feedback" : "error"}>
                 {results[index].correct ? "✓ " : "↻ "}
                 {results[index].message}
               </p>

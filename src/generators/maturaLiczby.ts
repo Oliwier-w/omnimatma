@@ -36,6 +36,8 @@ export function maturaLiczbyProblem(
   let explanations: string[] = [];
   let hints: string[] = [];
   let mistakes: Problem["mistakes"];
+  const commonTraps: { wrongAnswer: string; explanation: string }[] = [];
+  let oppositeRootSum: [number, number] | undefined;
 
   switch (id) {
     case "matura-liczby-pierwiastki": {
@@ -321,6 +323,10 @@ export function maturaLiczbyProblem(
     }
 
     case "matura-liczby-wzory-skrocone": {
+      commonTraps.push({
+        wrongAnswer: "0",
+        explanation: "Pominięto wyrazy mieszane 2ab w obu kwadratach. Po odjęciu (a+b)²−(a−b)² pozostaje 4ab, a nie zero.",
+      });
       mistakes = [{
         answer: "0",
         message: "Pominięto wyraz mieszany 2ab. Kwadrat sumy to (a+b)²=a²+2ab+b², a kwadrat różnicy to (a−b)²=a²−2ab+b². Po odjęciu zostaje 4ab, nie zero — także dla a=π lub a=√2.",
@@ -574,6 +580,7 @@ export function maturaLiczbyProblem(
         let q = rng(2, 12);
         if (p === q) q = q === 12 ? 11 : q + 1;
         answer = String(p + q);
+        oppositeRootSum = [-p - q, 1];
         prompt = `Oblicz sumę rozwiązań równania (x − ${p})(x − ${q}) = 0.`;
         latex = `(x-${p})(x-${q})=0`;
         expressions = [`${p}+${q}`, answer, answer];
@@ -591,6 +598,7 @@ export function maturaLiczbyProblem(
         const p = rng(1, 9);
         const q = rng(10, 20);
         answer = String(q - p);
+        oppositeRootSum = [p - q, 1];
         prompt = `Oblicz sumę rozwiązań równania (x + ${p})(x − ${q}) = 0.`;
         latex = `(x+${p})(x-${q})=0`;
         expressions = [`${q}-${p}`, answer, answer];
@@ -606,9 +614,12 @@ export function maturaLiczbyProblem(
         ];
       } else if (level === 3) {
         const a = rng(2, 4);
-        const p = rng(1, 9);
+        // Choose the first root before the coefficient of the factor.
+        const root = rng(1, 9);
+        const p = a * root;
         const q = rng(1, 9);
         answer = niceFraction(p - a * q, a);
+        oppositeRootSum = [a * q - p, a];
         prompt = `Oblicz sumę rozwiązań równania (${a}x − ${p})(x + ${q}) = 0.`;
         latex = `(${a}x-${p})(x+${q})=0`;
         expressions = [`${p}/${a}-${q}`, `${p - a * q}/${a}`, answer];
@@ -629,6 +640,7 @@ export function maturaLiczbyProblem(
         const a = rng(2, 4);
         if (r === a * p) r = r === 9 ? 8 : r + 1;
         answer = niceFraction(a * (p - q) + r, a);
+        oppositeRootSum = [a * (q - p) - r, a];
         prompt = `Oblicz sumę rozwiązań równania (x − ${p})(x + ${q})(${a}x − ${r}) = 0.`;
         latex = `(x-${p})(x+${q})(${a}x-${r})=0`;
         expressions = [
@@ -654,6 +666,7 @@ export function maturaLiczbyProblem(
         let s = rng(2, 8);
         if (s === q) s = s === 8 ? 7 : s + 1;
         answer = String(q + s - p - r);
+        oppositeRootSum = [p + r - q - s, 1];
         prompt = `Oblicz sumę rozwiązań równania (x + ${p})(x − ${q})(x + ${r})(x − ${s}) = 0.`;
         latex = `(x+${p})(x-${q})(x+${r})(x-${s})=0`;
         expressions = [`-${p}+${q}-${r}+${s}`, answer, answer];
@@ -900,18 +913,13 @@ export function maturaLiczbyProblem(
       const context = contexts[level - 1];
       const plural = (value: number, forms: string[]) =>
         value === 1 ? forms[0] : value <= 4 ? forms[1] : forms[2];
-      let a = 0;
-      let b = 0;
-      let c = 0;
-      let d = 0;
-      let determinant = 0;
-      do {
-        a = rng(2, context.maxCoefficient);
-        b = rng(2, context.maxCoefficient);
-        c = rng(2, context.maxCoefficient);
-        d = rng(2, context.maxCoefficient);
-        determinant = a * d - b * c;
-      } while (determinant === 0);
+      const a = rng(2, context.maxCoefficient);
+      const b = rng(2, context.maxCoefficient);
+      const c = rng(2, context.maxCoefficient);
+      let d = rng(2, context.maxCoefficient);
+      // Only one d can make ad-bc zero; changing it once is sufficient.
+      if (a * d === b * c) d = d === context.maxCoefficient ? d - 1 : d + 1;
+      const determinant = a * d - b * c;
       const price1 = rng(3, 15);
       const price2 = rng(3, 15);
       const firstTotal = a * price1 + b * price2;
@@ -955,5 +963,12 @@ export function maturaLiczbyProblem(
   );
   problem.latex = latex;
   if (mistakes) problem.mistakes = mistakes;
+  if (oppositeRootSum && oppositeRootSum[0] !== 0) {
+    commonTraps.push({
+      wrongAnswer: niceFraction(...oppositeRootSum),
+      explanation: "Odczytano pierwiastki z przeciwnymi znakami. Z czynnika x−p otrzymujemy x=p, a z x+p otrzymujemy x=−p; dopiero te rozwiązania sumujemy.",
+    });
+  }
+  problem.commonTraps = commonTraps;
   return problem;
 }

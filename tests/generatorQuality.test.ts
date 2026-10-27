@@ -93,7 +93,8 @@ test("structured misconception diagnostics never replace a correct result or par
       for (const input of ['import("fs")', 'sqrt.constructor("return 1")()', "1/0", "(".repeat(1000), "9".repeat(2049)]) {
         const result = checkProblemAnswer(problem, input);
         assert.equal(result.correct, false);
-        assert.equal(result.message, checkAnswer(input, problem.answer).message);
+        assert.ok(["invalid", "unsupported"].includes(result.status));
+        assert.notEqual(result.status, "trap");
       }
     }
   }
@@ -111,7 +112,7 @@ test("fixed misconception arithmetic uses original operands, including symbolic 
   assert.equal(checkProblemAnswer(add, `${a * d + c * b}/${b * d}`).correct, true);
   for (const level of [1, 3, 5]) {
     const square = generateProblem("matura-liczby-wzory-skrocone", level, 42);
-    assert.match(checkProblemAnswer(square, "0").message, /Pominięto wyraz mieszany/);
+    assert.match(checkProblemAnswer(square, "0").message, /Pominięto wyraz(?:y)? mieszan/);
     assert.equal(checkProblemAnswer(square, square.answer).correct, true);
     assert.match(square.answer, /pi|sqrt/);
   }

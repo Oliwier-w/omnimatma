@@ -242,7 +242,8 @@ export function generateSmartPractice(spec: SmartPracticeSpec, seed: number, dif
     explanations = [`Odejmij ${c}x i ${b} po obu stronach: (${a - c})x=${d - b}. Następnie podziel przez niezerowy współczynnik.`, `Po zebraniu wyrazów współczynnik przy x to ${a - c}, a prawa strona to ${d - b}.`, `Iloraz daje x = ${answer}. Podstawienie do obu stron potwierdza równość.`];
     hints = ["Przenieś wyrazy z x na jedną stronę i liczby na drugą, wykonując te same działania po obu stronach.", `Po uporządkowaniu: (${a - c})x=${d - b}. Podziel obie strony przez ${a - c}.`, `${explanations[0]} Wynik: x = ${answer}.`];
   } else if (spec.kind === "determinant2x2") {
-    const a = integer(), b = integer(), c = integer(), d = integer();
+    const a = difficulty <= 3 ? 1 : integer(), b = integer(), c = integer();
+    const d = difficulty <= 3 ? b * c + rng(1, 2) * (rng(0, 1) ? 1 : -1) : integer();
     answer = String(a * d - b * c);
     mistakes = [
       { answer: String(b * c - a * d), message: "Ten wynik pasuje do odwrócenia kolejności odejmowania. Wyznacznik 2×2 liczymy jako ad − bc, a nie bc − ad." },
@@ -267,5 +268,5 @@ export function generateSmartPractice(spec: SmartPracticeSpec, seed: number, dif
     hints = [explanations[0], `Podstaw liczby: ${expression}. Przed skróceniem: (${n})/(${denominator}).`, `${explanations[0]} Następnie skróć (${n})/(${denominator}). Wynik: ${answer}.`];
   }
   const family = spec.kind === "rational" ? `rational-${{ "+": "add", "-": "subtract", "*": "multiply", "/": "divide" }[spec.operation]}` : spec.kind;
-  return { id: `smart-${family}-${seed}-${difficulty}`, generatorId: smartPracticeTopicId(spec), difficulty, prompt, latex: cleanMathLatex(latex), answer, hints, ...(mistakes ? { mistakes } : {}), steps: expressions.map((expression, i) => ({ expression, explanation: explanations[i] })) };
+  return { id: `smart-${family}-${seed}-${difficulty}`, generatorId: smartPracticeTopicId(spec), difficulty, prompt, latex: cleanMathLatex(latex), answer, hints, commonTraps: (mistakes ?? []).map(({ answer, message }) => ({ wrongAnswer: answer, explanation: message })), ...(mistakes ? { mistakes } : {}), steps: expressions.map((expression, i) => ({ expression, explanation: explanations[i] })) };
 }

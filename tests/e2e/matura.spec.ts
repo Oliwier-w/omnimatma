@@ -23,7 +23,7 @@ test("matura track opens a complete four-mode lesson and checks a generated task
   await page.getByRole("button", { name: "Otwórz brudnopis", exact: true }).click();
   await expect(page.locator(".scratchpad-panel")).toBeVisible();
   await page.locator(".scratchpad-icon-button").click();
-  const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+  const menu = page.getByRole("button", { name: "Otwórz menu nawigacji", exact: true });
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne" })

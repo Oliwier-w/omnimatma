@@ -3,7 +3,7 @@ import { generateSmartPractice, parseSmartPractice } from "../../src/lib/smartMa
 import { generateProblem } from "../../src/generators";
 
 async function nav(page: Page, label: string) {
-  const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+  const menu = page.getByRole("button", { name: "Otwórz menu nawigacji", exact: true });
   if (await menu.isVisible()) await menu.click();
   await page.getByRole("navigation", { name: "Menu główne" }).getByRole("link", { name: label, exact: true }).click();
 }
@@ -115,9 +115,10 @@ test("symbol translator and Formula X-Ray work in lessons and formula drawers", 
 
 test("a common fraction mistake produces a dedicated diagnostic, not a generic miss", async ({ page }) => {
   const problem = generateProblem("fractions-add", 1, 42);
-  const trap = problem.mistakes!.find((mistake) => mistake.answer !== problem.answer)!;
-  await page.goto("/zadania?v=1&topic=fractions-add&difficulty=1&seed=42");
-  await page.getByLabel("Twoja odpowiedź", { exact: true }).fill(trap.answer);
+  const trap = problem.commonTraps!.find((mistake) => mistake.wrongAnswer !== problem.answer)!;
+  await page.goto("/zadania?v=2&topic=fractions-add&difficulty=1&seed=42");
+  await page.getByLabel("Twoja odpowiedź", { exact: true }).fill(trap.wrongAnswer);
   await page.getByRole("button", { name: "Sprawdź", exact: true }).click();
-  await expect(page.locator(".tasks-feedback.is-wrong")).toContainText(trap.message);
+  await expect(page.locator(".tasks-feedback.is-trap")).toContainText(trap.explanation);
+  await expect(page.locator(".tasks-feedback.is-trap")).toContainText("Uwaga, klasyczna pułapka!");
 });

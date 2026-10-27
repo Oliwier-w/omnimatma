@@ -129,5 +129,16 @@ export function fractionProblem(
     answer: fraction(a + c, b + d),
     message: "Dodano osobno liczniki i mianowniki. Przy dodawaniu ułamków najpierw sprowadzamy je do wspólnego mianownika, a potem dodajemy tylko liczniki: mianownik określa rozmiar części i nie jest sumą mianowników.",
   }];
+  problem.commonTraps = [];
+  if (id === "fractions-add" && (a + c) * b * d !== (a * d + c * b) * (b + d))
+    problem.commonTraps.push({
+      wrongAnswer: fraction(a + c, b + d),
+      explanation: "Dodano osobno liczniki i mianowniki. Najpierw sprowadź ułamki do wspólnego mianownika, potem dodaj tylko liczniki.",
+    });
+  if (id === "fractions-divide" && c * c !== d * d)
+    problem.commonTraps.push({
+      wrongAnswer: fraction(a * c, b * d),
+      explanation: "Pomnożono przez dzielnik zamiast przez jego odwrotność. Przy dzieleniu drugi ułamek trzeba odwrócić.",
+    });
   return problem;
 }

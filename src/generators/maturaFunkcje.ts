@@ -25,6 +25,7 @@ export function maturaFunkcjeProblem(
   let second = "";
   let explanations: string[] = [];
   let hints: string[] = [];
+  const commonTraps: { wrongAnswer: string; explanation: string }[] = [];
 
   switch (id) {
     /* 11. Funkcja kawałkami liniowa — największa wartość w przedziale. */
@@ -98,6 +99,14 @@ export function maturaFunkcjeProblem(
       const h = rng(-4, 5) + level;
       const k = rng(-6, 6) + level;
       const c = a * h * h + k;
+      if (k !== 0) commonTraps.push({
+        wrongAnswer: String(a * h * h - k),
+        explanation: "Zmieniono znak przesunięcia pionowego k. Wyraz wolny to f(0)=ah²+k; składnik k zachowuje swój znak.",
+      });
+      if (a !== 1 && h !== 0) commonTraps.push({
+        wrongAnswer: String(h * h + k),
+        explanation: "Nie pomnożono h² przez a. Współczynnik a mnoży cały kwadrat (x−h)², także jego wyraz wolny h².",
+      });
 
       prompt = `Funkcja kwadratowa ma postać kanoniczną f(x) = a(x - h)^2 + k, gdzie a = ${a}, h = ${h}, k = ${k}. Po rozwinięciu do postaci f(x) = ax^2 + bx + c wyznacz współczynnik c.`;
       answer = String(c);
@@ -135,6 +144,10 @@ export function maturaFunkcjeProblem(
         qDenominator === 1
           ? String(qNumerator)
           : `${qNumerator}/${qDenominator}`;
+      commonTraps.push({
+        wrongAnswer: rational(linear * qNumerator ** n, qDenominator ** n),
+        explanation: "Użyto wykładnika n zamiast n−1. Od pierwszego do n-tego wyrazu wykonujemy n−1 mnożeń przez iloraz q.",
+      });
 
       prompt = `W ciągu geometrycznym (a_n) pierwszy wyraz jest równy ${linear}, a iloraz q = ${quotientText}. Oblicz wyraz a_${n}.`;
       answer = rational(numerator, denominator);
@@ -272,6 +285,10 @@ export function maturaFunkcjeProblem(
       const diagonal = shape.diagonal * scale;
       const difference = 2 * halfDifference;
       const leg = shape.leg * scale;
+      commonTraps.push({
+        wrongAnswer: `sqrt(${difference}^2+${height}^2)`,
+        explanation: "Użyto całej różnicy podstaw jako rzutu ramienia. W trapezie równoramiennym rzut ramienia jest połową tej różnicy.",
+      });
 
       prompt = `W trapezie równoramiennym ABCD dłuższa podstawa AB jest równoległa do krótszej podstawy CD. Przekątna AC ma długość ${diagonal}, cosinus kąta BAC jest równy ${shape.cosNumerator}/${shape.cosDenominator}, a różnica długości podstaw wynosi ${difference}. Oblicz długość ramienia tego trapezu.`;
       answer = String(leg);
@@ -328,5 +345,6 @@ export function maturaFunkcjeProblem(
     hints,
   );
   problem.latex = latex;
+  problem.commonTraps = commonTraps;
   return problem;
 }

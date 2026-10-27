@@ -59,6 +59,13 @@ export function matrixProblem(
     if (level >= 2 && rng(0, 1)) a = [a[1], a[0]];
   }
   if (id === "matrix-transpose" && level >= 3) a = create(size, size + 1);
+  if (id === "matrix-det" && level <= 3) {
+    // Start with the requested determinant, then apply determinant-preserving
+    // integer shears. Level 1 stays nonnegative, like the other warm-ups.
+    const target = rng(1, 2) * (level >= 2 && rng(0, 1) ? -1 : 1);
+    const u = rng(1, level + 1), v = rng(1, level + 1);
+    a = [[target, target * u], [v, 1 + u * v]];
+  }
   const A = mat(a),
     B = mat(b);
   let prompt = "",
@@ -208,5 +215,27 @@ export function matrixProblem(
     { answer: String(-determinant(a)), message: "Odwrócono znak wyznacznika. Dla macierzy 2×2 odejmujemy iloczyn drugiej przekątnej od pierwszej: det(A)=ad−bc, a nie bc−ad." },
     { answer: String(a[0][0] * a[1][1] + a[0][1] * a[1][0]), message: "Dodano iloczyny przekątnych. Wyznacznik macierzy 2×2 jest różnicą ad−bc, nie sumą ad+bc; znak minus wynika z naprzemiennych znaków w rozwinięciu wyznacznika." },
   ];
+  problem.commonTraps = [];
+  if (id === "matrix-det") {
+    const wrong = size === 2
+      ? a[0][0] * a[1][1] + a[0][1] * a[1][0]
+      : a[0][0] * a[1][1] * a[2][2] + a[0][1] * a[1][2] * a[2][0] +
+        a[0][2] * a[1][0] * a[2][1] + a[0][2] * a[1][1] * a[2][0] +
+        a[0][0] * a[1][2] * a[2][1] + a[0][1] * a[1][0] * a[2][2];
+    if (wrong !== determinant(a)) problem.commonTraps.push({
+      wrongAnswer: String(wrong),
+      explanation: size === 2
+        ? "Dodano iloczyny przekątnych. Wyznacznik 2×2 to ad−bc, a nie ad+bc."
+        : "Dodano wszystkie sześć iloczynów Sarrusa. Sumę trzech przekątnych przeciwnych trzeba odjąć od sumy trzech przekątnych głównych.",
+    });
+  }
+  if (id === "matrix-multiply") {
+    const wrong = map(a, (x, i, j) => x * b[i][j]);
+    const correct = map(a, (_, i, j) => a[i].reduce((sum, x, k) => sum + x * b[k][j], 0));
+    if (mat(wrong) !== mat(correct)) problem.commonTraps.push({
+      wrongAnswer: mat(wrong),
+      explanation: "Pomnożono elementy na tych samych pozycjach. Iloczyn macierzy wymaga sumowania iloczynów wiersza A i kolumny B.",
+    });
+  }
   return problem;
 }

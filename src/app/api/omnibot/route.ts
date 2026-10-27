@@ -94,7 +94,7 @@ export async function POST(request: Request): Promise<Response> {
     if (provider === "gemini" && body.model.includes("/")) throw new Failure("invalid");
     if (!["explain", "tutor", "ocr"].includes(String(body.mode))) throw new Failure("invalid");
     const mode = body.mode as OmniAIMode;
-    if (body.input !== undefined && (typeof body.input !== "string" || body.input.length > 600)) throw new Failure("invalid");
+    if (body.input !== undefined && (typeof body.input !== "string" || body.input.length > 1500)) throw new Failure("invalid");
     if (body.apiKey !== undefined && (typeof body.apiKey !== "string" || body.apiKey.length > 512 || /[^\x21-\x7e]/.test(body.apiKey))) throw new Failure("invalid");
     const input = typeof body.input === "string" ? body.input.trim() : "";
     if (mode !== "ocr" && (!input || body.image !== undefined)) throw new Failure("invalid");

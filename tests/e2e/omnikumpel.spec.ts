@@ -5,7 +5,7 @@ test("OmniKumpel solver, tutor, line check, pins and five related tasks", async 
   const errors: string[] = [];
   page.on("pageerror", e => errors.push(e.message));
   await page.goto("/omnikumpel");
-  await expect(page.getByRole("heading", { name: "OmniKumpel", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "OmniKumpel AI", exact: true })).toBeVisible();
   const input = page.getByLabel("Treść zadania dla OmniKumpla");
   await input.fill("2*x+5=13");
   await page.getByRole("tab", { name: /Naprowadź/ }).click();
@@ -37,9 +37,9 @@ test("OmniKumpel solver, tutor, line check, pins and five related tasks", async 
 });
 
 test("contextual help protects XP after revealing a solution", async ({ page }) => {
-  await page.goto("/zadania?v=1&topic=matrix-det&difficulty=1&seed=42");
-  await page.getByRole("button", { name: "Zapytaj OmniKumpel o ten krok" }).click();
-  const dialog = page.getByRole("dialog", { name: "OmniKumpel — pomoc do zadania" });
+  await page.goto("/zadania?v=2&topic=matrix-det&difficulty=1&seed=42");
+  await page.locator(".ok-dock-trigger").click();
+  const dialog = page.getByRole("dialog", { name: "OmniKumpel AI — pomoc do zadania" });
   await expect(dialog.getByLabel("Treść zadania dla OmniKumpla")).not.toHaveValue("");
   await dialog.getByRole("button", { name: "Rozpocznij naprowadzanie" }).click();
   await expect(dialog.locator(".ok-answer")).toHaveCount(0);
@@ -81,12 +81,12 @@ test("photo requires explicit sending and editable OCR confirmation", async ({ p
 });
 
 test("scratchpad sends text into the checker without losing context", async ({ page }) => {
-  await page.goto("/zadania?v=1&topic=matrix-det&difficulty=1&seed=42");
+  await page.goto("/zadania?v=2&topic=matrix-det&difficulty=1&seed=42");
   await page.getByRole("button", { name: "Brudnopis w kratkę", exact: true }).click();
   const pad = page.locator(".scratchpad-panel");
   await pad.getByRole("textbox", { name: "OBLICZENIA / NOTATKI", exact: true }).fill("2+2\n\n4");
   await pad.getByRole("button", { name: "Wyślij kroki do OmniKumpla" }).click();
-  const dialog = page.getByRole("dialog", { name: "OmniKumpel — pomoc do zadania" });
+  const dialog = page.getByRole("dialog", { name: "OmniKumpel AI — pomoc do zadania" });
   await expect(dialog.getByRole("tab", { name: "Sprawdź moje rozwiązanie" })).toHaveAttribute("aria-selected", "true");
   await expect(dialog.getByLabel("Moje obliczenia", { exact: true })).toHaveValue("2+2\n\n4");
   await expect(dialog.getByLabel("Treść zadania dla OmniKumpla")).not.toHaveValue("");

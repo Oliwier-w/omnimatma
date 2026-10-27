@@ -48,7 +48,7 @@ test("Omni AI: isolated mocked providers and bounded transport", async (t) => {
 
   await t.test("unsafe URLs, model IDs, forged results, and invalid input never reach fetch", async (t) => {
     const mock = t.mock.method(globalThis, "fetch", async () => { throw new Error("must not call"); });
-    for (const extra of [{ baseURL: "http://127.0.0.1" }, { provider: "http://127.0.0.1" }, { provider: "__proto__" }, { model: "https://evil.example" }, { model: "../metadata" }, { model: "x".repeat(101) }, { model: "a?key=x" }, { provider: "gemini", model: "a/b" }, { answer: "999" }, { input: "a".repeat(601) }, { apiKey: "key\nheader" }]) {
+    for (const extra of [{ baseURL: "http://127.0.0.1" }, { provider: "http://127.0.0.1" }, { provider: "__proto__" }, { model: "https://evil.example" }, { model: "../metadata" }, { model: "x".repeat(101) }, { model: "a?key=x" }, { provider: "gemini", model: "a/b" }, { answer: "999" }, { input: "a".repeat(1501) }, { apiKey: "key\nheader" }]) {
       const response = await POST(request(payload(extra)));
       assert.equal(response.status, 400);
       assert.equal((await response.json()).error, OMNI_AI_ERRORS.invalid);

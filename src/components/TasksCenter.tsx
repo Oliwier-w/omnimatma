@@ -159,12 +159,9 @@ export default function TasksCenter({
   const [seriesComplete, setSeriesComplete] = useState(false);
   const [input, setInput] = useState("");
   const [hints, setHints] = useState(0);
-  const [result, setResult] = useState<{
-    correct: boolean;
-    message: string;
-  } | null>(null);
+  const [result, setResult] = useState<ReturnType<typeof checkProblemAnswer> | null>(null);
   const [solution, setSolution] = useState(false);
-  const { revealed, reveal } = useOmniKumpel();
+  const { revealed, reveal, setQuestion, openHelper } = useOmniKumpel();
   useEffect(() => { if (solution && round) reveal(`task:${round.problem.id}`); }, [solution, round, reveal]);
   const [deepOpen, setDeepOpen] = useState<boolean[]>([]);
   const [answered, setAnswered] = useState(false);
@@ -176,6 +173,19 @@ export default function TasksCenter({
   const creditedRef = useRef<Set<string>>(new Set());
   const { setOpen: setScratchOpen } = useScratchpad();
   useOmniQuestion(round ? { id: `task:${round.problem.id}`, title: round.topic.label, prompt: round.problem.prompt, problem: round.problem } : undefined);
+  const askOmniStep = (index: number) => {
+    if (!round) return;
+    const step = round.problem.steps[index];
+    setQuestion({
+      id: `task-step:${round.problem.id}:${index}`,
+      title: `${round.topic.label} · krok ${index + 1}`,
+      prompt: `${round.problem.prompt}\n\nKrok ${index + 1}: ${step.explanation}\nZapis kontrolny: ${step.expression}`,
+      problem: round.problem,
+      lessonHint: step.explanation,
+    });
+    setScratchOpen(false);
+    openHelper("tutor");
+  };
 
   const levelTopics = useMemo(
     () => filterMasterTopics(catalog, level, "all"),
@@ -668,7 +678,7 @@ export default function TasksCenter({
                     key={`${round.problem.id}-${result.correct}`}
                     role="status"
                     className={`tasks-feedback ${
-                      result.correct ? "is-correct" : "is-wrong"
+                      result.correct ? "is-correct" : result.status === "trap" ? "is-trap" : "is-wrong"
                     }`}
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -681,9 +691,7 @@ export default function TasksCenter({
                       )}
                     </span>
                     <p>
-                      {result.correct
-                        ? "Dobrze — to poprawna odpowiedź."
-                        : result.message}
+                      {result.message}
                     </p>
                     {result.correct && (
                       <span className="tasks-feedback-xp">
@@ -762,14 +770,23 @@ export default function TasksCenter({
                       <div className="tasks-step-body">
                         <p>{step.explanation}</p>
                         <code>{step.expression}</code>
-                        <button
-                          type="button"
-                          className="tasks-deep-toggle"
-                          aria-expanded={Boolean(deepOpen[index])}
-                          onClick={() => toggleDeep(index)}
-                        >
-                          <HelpCircle size={14} /> Nie rozumiem tego kroku
-                        </button>
+                        <div className="tasks-step-actions">
+                          <button
+                            type="button"
+                            className="tasks-deep-toggle"
+                            aria-expanded={Boolean(deepOpen[index])}
+                            onClick={() => toggleDeep(index)}
+                          >
+                            <HelpCircle size={14} /> Nie rozumiem tego kroku
+                          </button>
+                          <button
+                            type="button"
+                            className="tasks-deep-toggle tasks-ask-omni"
+                            onClick={() => askOmniStep(index)}
+                          >
+                            🤖 Zapytaj OmniKumpla o ten krok
+                          </button>
+                        </div>
                         <AnimatePresence initial={false}>
                           {deepOpen[index] && (
                             <motion.p

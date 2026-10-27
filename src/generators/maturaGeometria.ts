@@ -20,6 +20,7 @@ export function maturaGeometriaProblem(
   seed: number,
   rng: RNG,
 ): Problem {
+  const commonTraps: { wrongAnswer: string; explanation: string }[] = [];
   const make = (
     prompt: string,
     answer: string,
@@ -39,6 +40,7 @@ export function maturaGeometriaProblem(
       hints,
     );
     problem.latex = latex;
+    problem.commonTraps = commonTraps;
     return problem;
   };
 
@@ -81,6 +83,10 @@ export function maturaGeometriaProblem(
       const x2 = x1 + dx;
       const y2 = y1 + dy;
       const answer = fraction(dy, dx);
+      if (dx * dx !== dy * dy) commonTraps.push({
+        wrongAnswer: fraction(dx, dy),
+        explanation: "Odwrócono iloraz przyrostów. Współczynnik kierunkowy to Δy/Δx, a nie Δx/Δy.",
+      });
       return make(
         `Prosta przechodzi przez punkty A=(${x1}, ${y1}) i B=(${x2}, ${y2}). Podaj współczynnik kierunkowy tej prostej, czyli tangens jej kąta nachylenia do osi OX.`,
         answer,
@@ -111,6 +117,10 @@ export function maturaGeometriaProblem(
       const pointX = centerX + dx;
       const pointY = centerY + dy;
       const radiusSquared = dx * dx + dy * dy;
+      commonTraps.push({
+        wrongAnswer: `sqrt(${radiusSquared})`,
+        explanation: "Podano promień r, ale pytanie dotyczy jego kwadratu r². Suma kwadratów różnic współrzędnych jest już szukanym wynikiem.",
+      });
       return make(
         `Punkt P=(${pointX}, ${pointY}) leży na okręgu o środku S=(${centerX}, ${centerY}). Podaj kwadrat promienia tego okręgu, czyli r^2.`,
         String(radiusSquared),
@@ -138,8 +148,8 @@ export function maturaGeometriaProblem(
       const c = rng(1, level + 2);
       let b = rng(-2, level + 2);
       let d = rng(-level, level);
-      if (b === d) d += 1;
       const m = a + c;
+      if (m + b === d) d += 1;
       return make(
         `Proste o równaniach y=(m-${a})x+(m${signedTerm(b)}) i y=${c}x${signedTerm(d)} są równoległe. Wyznacz m.`,
         String(m),
@@ -161,6 +171,10 @@ export function maturaGeometriaProblem(
     case "matura-geometria-graniastoslup": {
       const a = level + rng(2, 20);
       const answer = `(3*sqrt(3)/2)*${a}^3`;
+      commonTraps.push({
+        wrongAnswer: `(sqrt(3)/4)*${a}^3`,
+        explanation: "Policzono objętość nad jednym trójkątem równobocznym. Podstawa sześciokątna składa się z sześciu takich trójkątów.",
+      });
       return make(
         `Graniastosłup prawidłowy sześciokątny ma wszystkie krawędzie długości ${a}. Oblicz objętość tego graniastosłupa. Wynik możesz zapisać z pierwiastkiem.`,
         answer,
@@ -204,6 +218,10 @@ export function maturaGeometriaProblem(
                 `sqrt(3*${lateral}^2/4)`,
                 `${lateral}^2*sqrt(3)/(2*${lateral})`,
               ];
+      if (angle !== 45) commonTraps.push({
+        wrongAnswer: angle === 30 ? `${lateral}/2*sqrt(3)` : String(lateral / 2),
+        explanation: "Użyto cosinusa zamiast sinusa kąta nachylenia do podstawy. Wysokość leży naprzeciw tego kąta, więc h=l·sin α.",
+      });
       return make(
         `W ostrosłupie prawidłowym czworokątnym krawędź boczna ma długość ${lateral}, a kąt nachylenia tej krawędzi do płaszczyzny podstawy ma miarę ${angle}°. Oblicz wysokość ostrosłupa.`,
         answer,
@@ -258,6 +276,10 @@ export function maturaGeometriaProblem(
           if (mode === "rowna" ? sum === threshold : sum > threshold) count++;
         }
       const [numerator, denominator] = reduce(count, 36);
+      if (count !== 0) commonTraps.push({
+        wrongAnswer: fraction(count, 12),
+        explanation: "Dodano liczby wyników kostek zamiast je pomnożyć. Dwie rozróżnialne kostki dają 6·6=36 jednakowo prawdopodobnych par, a nie 12.",
+      });
       return make(
         `Rzucamy dwiema kostkami do gry: ${colors[0]} i ${colors[1]}. Oblicz prawdopodobieństwo zdarzenia, że suma oczek będzie ${mode === "rowna" ? "równa" : "większa od"} ${threshold}. Wynik podaj jako ułamek.`,
         `${numerator}/${denominator}`,
@@ -377,6 +399,10 @@ export function maturaGeometriaProblem(
     case "matura-geometria-optymalizacja": {
       const sum = 4 * (level + rng(2, 20));
       const answer = String(sum / 4);
+      commonTraps.push({
+        wrongAnswer: String(sum / 2),
+        explanation: "Potraktowano średnicę jak promień. Warunek d+h=S oznacza 2r+h=S, dlatego maksimum pola bocznego wypada w r=S/4, nie S/2.",
+      });
       return make(
         `Walec ma średnicę podstawy d i wysokość h, przy czym d+h=${sum}. Jaka długość promienia r maksymalizuje pole powierzchni bocznej tego walca?`,
         answer,

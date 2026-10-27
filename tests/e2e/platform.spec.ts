@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { generateProblem } from "../../src/generators";
 
 async function navigate(page: Page, label: string) {
-  const menu = page.getByRole("button", { name: "Otwórz menu", exact: true });
+  const menu = page.getByRole("button", { name: "Otwórz menu nawigacji", exact: true });
   if (await menu.isVisible()) await menu.click();
   await page
     .getByRole("navigation", { name: "Menu główne" })

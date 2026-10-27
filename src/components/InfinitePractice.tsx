@@ -33,10 +33,7 @@ export default function InfinitePractice({
   );
   const [input, setInput] = useState("");
   const [hints, setHints] = useState(0);
-  const [result, setResult] = useState<{
-    correct: boolean;
-    message: string;
-  } | null>(null);
+  const [result, setResult] = useState<ReturnType<typeof checkProblemAnswer> | null>(null);
   const [solution, setSolution] = useState(false);
   const { revealed, reveal } = useOmniKumpel();
   const assisted = solution || revealed.has(`task:${problem.id}`);
@@ -209,7 +206,7 @@ export default function InfinitePractice({
       {result && (
         <div
           role="status"
-          className={result.correct ? "feedback success" : "feedback error"}
+          className={result.correct ? "feedback success" : result.status === "trap" ? "feedback trap-feedback" : "feedback error"}
         >
           {result.correct ? <Check size={18} /> : null}
           {result.message}

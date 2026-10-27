@@ -11,7 +11,12 @@ export type SmartMathBarProps = {
   compact?: boolean;
 };
 
-const examples = ["3/4+1/2", "2x+5=13", "det([1,2;3,4])"];
+const examples = [
+  "3/4 + 5/6",
+  "x² - 5x + 6 = 0",
+  "det([2, 1; 5, 3])",
+  "(1 + i)⁴",
+];
 
 /** Callbacks belong to the client parent (e.g. TasksCenter), not an RSC boundary. */
 export default function SmartMathBar({ onPractice, onSearch, compact = false }: SmartMathBarProps) {

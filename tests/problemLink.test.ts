@@ -7,7 +7,7 @@ import { lessonPath, readWorkspacePath, WORKSPACE_PATHS } from "../src/lib/works
 import { generateOmniPractice, omniPracticeTopicId } from "../src/lib/omnikumpelEngine";
 import type { OmniPracticeSpec } from "../src/lib/omnikumpelTypes";
 
-test("Omni families and five-task series round trip without breaking v1 links", () => {
+test("Omni families and five-task series round trip in the current generator version", () => {
   for (const omni of [{ kind: "quadratic" }, { kind: "derivative" }, { kind: "matrix", operation: "inverse" }, { kind: "statistics", statistic: "all" }, { kind: "complex", operation: "divide" }] as OmniPracticeSpec[]) {
     const topicId = omniPracticeTopicId(omni);
     const path = problemPath({ topicId, difficulty: 3, seed: 42, omni, mode: "series5" });
@@ -48,7 +48,8 @@ test("smart family and series mode survive sharing without serializing answers",
   }
 });
 test("invalid, tampered or unsupported share links fail safely", () => {
-  for (const query of ["v=999&topic=matrix-det&difficulty=1&seed=5", "v=1&topic=unknown&difficulty=1&seed=5", "v=1&topic=matrix-det&difficulty=6&seed=5", "v=1&topic=matrix-det&difficulty=1&seed=-1", "v=1&topic=matrix-det&difficulty=1&seed=1e9", "v=1&topic=matrix-det&difficulty=1&seed=4294967296", "v=1&topic=matrix-det&difficulty=1&seed=5&practice=%7Bbad", "v=1&topic=matrix-det&difficulty=1&seed=5&mode=bad"]) {
+  assert.equal(parseProblemLink(new URLSearchParams("v=1&topic=matrix-det&difficulty=1&seed=5"), ["matrix-det"]).value, null);
+  for (const query of ["v=999&topic=matrix-det&difficulty=1&seed=5", "v=2&topic=unknown&difficulty=1&seed=5", "v=2&topic=matrix-det&difficulty=6&seed=5", "v=2&topic=matrix-det&difficulty=1&seed=-1", "v=2&topic=matrix-det&difficulty=1&seed=1e9", "v=2&topic=matrix-det&difficulty=1&seed=4294967296", "v=2&topic=matrix-det&difficulty=1&seed=5&practice=%7Bbad", "v=2&topic=matrix-det&difficulty=1&seed=5&mode=bad"]) {
     const result = parseProblemLink(new URLSearchParams(query), ["matrix-det"]);
     assert.equal(result.value, null); assert.ok(result.error);
   }
