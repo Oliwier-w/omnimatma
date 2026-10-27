@@ -8,7 +8,11 @@ import {
   type ReactNode,
   type SetStateAction,
 } from "react";
-import Scratchpad, { type ScratchpadSize } from "./Scratchpad";
+import dynamic from "next/dynamic";
+import type { ScratchpadSize } from "./Scratchpad";
+
+/** Split the 12 kB editor from the workspace shell; it renders null when closed. */
+const Scratchpad = dynamic(() => import("./Scratchpad"));
 
 const Context = createContext<{
   open: boolean;

@@ -1,8 +1,11 @@
 "use client";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import type { Lesson } from "@/lib/lesson";
 import { parseProblemLink } from "@/lib/problemLink";
-import TasksCenter from "./TasksCenter";
+
+/** The practice centre is only loaded when someone actually opens /zadania. */
+const TasksCenter = dynamic(() => import("./TasksCenter"));
 
 export default function TasksRoute({ lessons, onSolved }: { lessons: Lesson[]; onSolved: (id: string, difficulty: number, lessonId?: string) => boolean }) {
   const params = useSearchParams();

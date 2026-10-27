@@ -177,8 +177,7 @@ export function generateMasterProblem(
   topicId: string,
   difficulty: MasterDifficulty,
   seed?: number,
-): MasterProblem {
-  const topic = catalogRegistry.get(topicId) ?? fallbackTopic(topicId);
+): MasterProblem {  const topic = catalogRegistry.get(topicId) ?? fallbackTopic(topicId);
   const actualSeed = seed ?? randomMasterSeed();
   if (!Number.isSafeInteger(actualSeed))
     throw new Error("Ziarno musi być bezpieczną liczbą całkowitą.");
@@ -203,4 +202,64 @@ export function generateMasterProblem(
     effectiveDifficulty,
     deepSteps: buildDeepSteps(problem),
   };
+}
+
+export type CatalogCoverage = {
+  lessons: number;
+  generators: number;
+  /** Lessons whose generator has no registered template. */
+  missing: { lessonId: string; generatorId: string }[];
+  /** Registered generators that no lesson points at. */
+  unused: string[];
+  /** Two lessons sharing one generator would produce duplicate practice. */
+  duplicates: string[];
+};
+
+/**
+ * Verifies that every lesson in the vault has exactly one dedicated generator
+ * template. Percentages, equations, trigonometry, sequences, descriptive
+ * statistics and analysis each live in their own family, so a gap here means a
+ * whole micro-topic would silently reuse another family's task.
+ */
+export function auditMasterCatalog(lessons: Lesson[]): CatalogCoverage {
+  const catalog = buildMasterCatalog(lessons);
+  const registered = new Set<string>(GENERATOR_IDS);
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const topic of catalog) {
+    if (seen.has(topic.generatorId)) duplicates.push(topic.generatorId);
+    seen.add(topic.generatorId);
+  }
+  return {
+    lessons: catalog.length,
+    generators: GENERATOR_IDS.length,
+    missing: catalog
+      .filter((topic) => !registered.has(topic.generatorId))
+      .map((topic) => ({
+        lessonId: topic.lessonId,
+        generatorId: topic.generatorId,
+      })),
+    unused: GENERATOR_IDS.filter((id) => !seen.has(id)),
+    duplicates: [...new Set(duplicates)],
+  };
+}
+
+/** Throws a readable Polish error when the catalog has a coverage gap. */
+export function assertMasterCatalog(lessons: Lesson[]): CatalogCoverage {
+  const coverage = auditMasterCatalog(lessons);
+  if (coverage.missing.length)
+    throw new Error(
+      `Brak szablonu dla lekcji: ${coverage.missing
+        .map((entry) => `${entry.lessonId} → ${entry.generatorId}`)
+        .join(", ")}.`,
+    );
+  if (coverage.duplicates.length)
+    throw new Error(
+      `Wspólny generator dla kilku lekcji: ${coverage.duplicates.join(", ")}.`,
+    );
+  if (coverage.unused.length)
+    throw new Error(
+      `Generator bez lekcji: ${coverage.unused.join(", ")}.`,
+    );
+  return coverage;
 }

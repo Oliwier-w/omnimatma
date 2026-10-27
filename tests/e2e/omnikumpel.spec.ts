@@ -85,7 +85,7 @@ test("scratchpad sends text into the checker without losing context", async ({ p
   await page.getByRole("button", { name: "Brudnopis w kratkę", exact: true }).click();
   const pad = page.locator(".scratchpad-panel");
   await pad.getByRole("textbox", { name: "OBLICZENIA / NOTATKI", exact: true }).fill("2+2\n\n4");
-  await pad.getByRole("button", { name: "Wyślij kroki do OmniKumpla" }).click();
+  await pad.getByRole("button", { name: "🤖 Sprawdź moje zapiski z OmniKumplem" }).click();
   const dialog = page.getByRole("dialog", { name: "OmniKumpel AI — pomoc do zadania" });
   await expect(dialog.getByRole("tab", { name: "Sprawdź moje rozwiązanie" })).toHaveAttribute("aria-selected", "true");
   await expect(dialog.getByLabel("Moje obliczenia", { exact: true })).toHaveValue("2+2\n\n4");

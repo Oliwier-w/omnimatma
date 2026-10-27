@@ -24,13 +24,17 @@ import {
 import { checkSteps } from "@/generators";
 import { createPortal } from "react-dom";
 import { acquireInert, acquireScrollLock } from "@/lib/interactionLock";
+import dynamic from "next/dynamic";
+
 import ScratchpadCanvas, {
   type ScratchStroke,
   type ScratchText,
 } from "./ScratchpadCanvas";
-import SmoothCalculator from "./SmoothCalculator";
 import "./Scratchpad.css";
 import { useOmniKumpel } from "./OmniKumpelContext";
+
+/** The calculator is only fetched when the "Kalkulator" tab is opened. */
+const SmoothCalculator = dynamic(() => import("./SmoothCalculator"));
 
 export type ScratchpadSize = "half" | "wide" | "full";
 
@@ -54,7 +58,7 @@ export default function Scratchpad({
   const id = useId();
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<"notes" | "draw" | "calc">("notes");
-  const { openHelper } = useOmniKumpel();
+  const { openHelper, setQuestion } = useOmniKumpel();
   const [strokes, setStrokes] = useState<ScratchStroke[]>([]);
   const [textBlocks, setTextBlocks] = useState<ScratchText[]>([]);
   const [notice, setNotice] = useState("");
@@ -68,6 +72,35 @@ export default function Scratchpad({
   const closeButton = useRef<HTMLButtonElement>(null);
   const close = useRef(onClose);
   const modal = compact || size === "full";
+
+  /**
+   * The unified math context loop: notes become part of the OmniKumpel question,
+   * so the checker diagnoses the learner's own lines instead of a generic task.
+   */
+  const checkNotesWithOmni = () => {
+    const lines = notes
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, 100);
+    setQuestion((previous) => ({
+      id: `scratchpad:${Date.now()}`,
+      title: previous?.title
+        ? `${previous.title} · brudnopis`
+        : "Moje zapiski z brudnopisu",
+      prompt: [
+        previous?.prompt,
+        "Moje obliczenia z brudnopisu:",
+        ...lines,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      problem: previous?.problem,
+      lessonHint: previous?.lessonHint,
+    }));
+    onClose();
+    openHelper("check");
+  };
 
   useEffect(() => {
     close.current = onClose;
@@ -340,7 +373,7 @@ export default function Scratchpad({
                   </li>
                 ))}
               </ul>
-              <button type="button" className="scratchpad-check-button" disabled={!notes.trim()} onClick={() => { onClose(); openHelper("check"); }}><Bot size={15} /> Wyślij kroki do OmniKumpla</button>
+              <button type="button" className="scratchpad-check-button" disabled={!notes.trim()} onClick={checkNotesWithOmni}><Bot size={15} /> 🤖 Sprawdź moje zapiski z OmniKumplem</button>
               <p>Przekazujemy tekst notatek lokalnie. Rysunek nie jest automatycznie rozpoznawany.</p>
             </div>
           </>

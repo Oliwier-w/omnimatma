@@ -66,6 +66,7 @@ test("a seed link reproduces the exact problem in a fresh browser context and af
 
 test("Smart Math gives exact steps and starts ten genuinely similar equations", async ({ page }, info) => {
   await page.goto("/");
+  await page.waitForSelector('html[data-hydrated="true"]');
   const bar = page.locator(".sm-bar");
   await bar.getByRole("textbox", { name: "Wpisz działanie, równanie lub temat" }).fill("2x + 5 = 13");
   await expect(bar.locator(".sm-answer strong")).toHaveText("x = 4");

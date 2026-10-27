@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { solveSmartMath, type SmartMathResult, type SmartPracticeSpec } from "../lib/smartMath";
 import "./SmartMathBar.css";
@@ -9,6 +9,8 @@ export type SmartMathBarProps = {
   onPractice: (spec: SmartPracticeSpec) => void;
   onSearch?: (query: string) => void;
   compact?: boolean;
+  /** Fired once when the first starter example is solved independently. */
+  onSolvedExample?: (id: string) => void;
 };
 
 const examples = [
@@ -19,9 +21,10 @@ const examples = [
 ];
 
 /** Callbacks belong to the client parent (e.g. TasksCenter), not an RSC boundary. */
-export default function SmartMathBar({ onPractice, onSearch, compact = false }: SmartMathBarProps) {
+export default function SmartMathBar({ onPractice, onSearch, compact = false, onSolvedExample }: SmartMathBarProps) {
   const id = useId();
   const reducedMotion = useReducedMotion();
+  const rewardSent = useRef(false);
   const [input, setInput] = useState("");
   const [settled, setSettled] = useState<{ input: string; result: SmartMathResult } | null>(null);
   useEffect(() => {
@@ -30,6 +33,14 @@ export default function SmartMathBar({ onPractice, onSearch, compact = false }: 
     return () => clearTimeout(timer);
   }, [input]);
   const result = settled?.input === input ? settled.result : null;
+  useEffect(() => {
+    if (rewardSent.current || !onSolvedExample) return;
+    if (result?.kind !== "solved") return;
+    const normalize = (value: string) => value.replace(/\s+/g, " ").trim();
+    if (normalize(input) !== normalize(examples[0])) return;
+    rewardSent.current = true;
+    onSolvedExample("smart-example:fraction-sum");
+  }, [result, input, onSolvedExample]);
   const hasInput = Boolean(input.trim());
   const topic = /^[\p{L}\s-]+$/u.test(input.trim()) && /[\p{L}]{2}/u.test(input);
   const error = result && result.kind !== "solved" && !topic;

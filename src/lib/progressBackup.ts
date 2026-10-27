@@ -106,6 +106,49 @@ export function backupFileName(now: Date = new Date()): string {
   return `omnimatma-postepy-${localDay(now)}.json`;
 }
 
+/** Query parameter used by the phone-to-phone sync link. */
+export const SYNC_PARAM = "sync";
+
+function toBase64Url(text: string): string {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromBase64Url(code: string): string {
+  const normalized = code.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(
+    normalized.length + ((4 - (normalized.length % 4)) % 4),
+    "=",
+  );
+  const binary = atob(padded);
+  return new TextDecoder().decode(
+    Uint8Array.from(binary, (character) => character.charCodeAt(0)),
+  );
+}
+
+/**
+ * Builds a portable `?sync=` link. The payload is the same validated, versioned
+ * backup used by the file importer — only the transport (URL-safe Base64) differs.
+ */
+export function encodeSyncLink(progress: Progress, origin: string): string {
+  const backup = exportProgressBackup(progress);
+  const url = new URL("/", origin);
+  url.searchParams.set(SYNC_PARAM, toBase64Url(backup));
+  return url.toString();
+}
+
+/** Returns null for a missing or invalid link instead of throwing mid-render. */
+export function parseSyncLink(value: string | null): Progress | null {
+  if (!value || !value.trim()) return null;
+  try {
+    return parseProgressBackup(fromBase64Url(value.trim()));
+  } catch {
+    return null;
+  }
+}
+
 /** Counts used by the import preview before the user confirms anything. */
 export function progressSummary(progress: Progress): ProgressSummary {
   const counts = Object.values(progress.solved);

@@ -45,6 +45,8 @@ import {
 } from "@/generators/masterGenerator";
 import MathText, { MathFormula } from "./MathText";
 import { useScratchpad } from "./ScratchpadContext";
+import FormulaXray from "./FormulaXray";
+import WikiLink from "./WikiLink";
 import "./TasksCenter.css";
 import { problemPath, type ProblemLink } from "@/lib/problemLink";
 import { generateSmartPractice, smartPracticeTopicId, type SmartPracticeSpec } from "@/lib/smartMath";
@@ -173,6 +175,25 @@ export default function TasksCenter({
   const creditedRef = useRef<Set<string>>(new Set());
   const { setOpen: setScratchOpen } = useScratchpad();
   useOmniQuestion(round ? { id: `task:${round.problem.id}`, title: round.topic.label, prompt: round.problem.prompt, problem: round.problem } : undefined);
+  /** The lesson behind the active topic, used for the formula hint and wiki bubbles. */
+  const topicLesson = useMemo(
+    () =>
+      round
+        ? lessons.find(
+            (lesson) =>
+              lesson.id === round.topic.lessonId ||
+              lesson.generatorId === round.topic.generatorId,
+          )
+        : undefined,
+    [lessons, round],
+  );
+  const topicLinks = useMemo(() => {
+    if (!topicLesson) return [];
+    const ids = [topicLesson.id, ...topicLesson.prerequisites];
+    return [...new Set(ids)]
+      .map((id) => lessons.find((lesson) => lesson.id === id))
+      .filter((lesson): lesson is Lesson => Boolean(lesson));
+  }, [lessons, topicLesson]);
   const askOmniStep = (index: number) => {
     if (!round) return;
     const step = round.problem.steps[index];
@@ -706,6 +727,23 @@ export default function TasksCenter({
                 )}
               </AnimatePresence>
 
+              {result && !result.correct && topicLesson && (
+                <section
+                  className="tasks-formula-hint"
+                  aria-label="Wzór potrzebny w tym zadaniu"
+                  style={{ marginTop: 12 }}
+                >
+                  <p className="muted" style={{ marginBottom: 8 }}>
+                    Spójrz na wzór, z którego korzysta to zadanie:
+                  </p>
+                  <FormulaXray
+                    formula={topicLesson.formula}
+                    topicId={topicLesson.generatorId}
+                    title={topicLesson.title}
+                  />
+                </section>
+              )}
+
               <div className="tasks-actions">
                 <div className="tasks-hint-buttons">
                   {round.problem.hints.slice(0, 3).map((_, index) => (
@@ -770,6 +808,25 @@ export default function TasksCenter({
                       <div className="tasks-step-body">
                         <p>{step.explanation}</p>
                         <code>{step.expression}</code>
+                        {topicLinks.length > 0 && (
+                          <div
+                            className="tasks-step-links"
+                            aria-label="Pojęcia potrzebne w tym kroku"
+                            style={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 5,
+                              marginTop: 6,
+                            }}
+                          >
+                            {topicLinks.map((linked) => (
+                              <WikiLink
+                                key={linked.id}
+                                value={`[[${linked.id}|${linked.title}]]`}
+                              />
+                            ))}
+                          </div>
+                        )}
                         <div className="tasks-step-actions">
                           <button
                             type="button"

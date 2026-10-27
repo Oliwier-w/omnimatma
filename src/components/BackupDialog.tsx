@@ -7,6 +7,7 @@ import { type Progress } from "@/lib/progress";
 import {
   MAX_BACKUP_BYTES,
   backupFileName,
+  encodeSyncLink,
   exportProgressBackup,
   parseProgressBackup,
   progressSummary,
@@ -48,6 +49,7 @@ export default function BackupDialog({ progress, onChange, onClose }: Props) {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [syncLink, setSyncLink] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const summary = progressSummary(progress);
 
@@ -89,6 +91,23 @@ export default function BackupDialog({ progress, onChange, onClose }: Props) {
     } catch {
       setStatus(null);
       setError("Przeglądarka zablokowała schowek. Pobierz plik .json zamiast kodu.");
+    }
+  };
+
+  const copySyncLink = async () => {
+    try {
+      const link = encodeSyncLink(progress, window.location.origin);
+      setSyncLink(link);
+      await navigator.clipboard.writeText(link);
+      setError(null);
+      setStatus(
+        "Skopiowano link synchronizacyjny. Otwórz go na telefonie — postęp wczyta się sam.",
+      );
+    } catch {
+      setStatus(null);
+      setError(
+        "Nie udało się skopiować linku. Zaznacz go i skopiuj ręcznie albo pobierz plik .json.",
+      );
     }
   };
 
@@ -174,7 +193,22 @@ export default function BackupDialog({ progress, onChange, onClose }: Props) {
             <button type="button" className="button" onClick={() => void copyCode()}>
               <Copy size={16} /> Skopiuj kod Base64
             </button>
+            <button type="button" className="button" onClick={() => void copySyncLink()}>
+              🔗 Kopiuj link synchronizacyjny na telefon
+            </button>
           </div>
+          {syncLink && (
+            <label className="input-label" htmlFor="backup-sync-link">
+              Link synchronizacyjny
+              <input
+                id="backup-sync-link"
+                className="field"
+                readOnly
+                value={syncLink}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            </label>
+          )}
         </section>
 
         <section className="profile-block" aria-labelledby="backup-import-title">

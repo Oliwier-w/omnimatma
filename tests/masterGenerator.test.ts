@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { getLessons } from "../src/lib/vaultParser";
 import { checkProblemAnswer } from "../src/generators";
 import {
+  assertMasterCatalog,
+  auditMasterCatalog,
   buildMasterCatalog,
   filterMasterTopics,
   generateMasterProblem,
@@ -201,4 +203,49 @@ test("nieznany temat jest odrzucany czytelnym błędem", () => {
     () => generateMasterProblem("nie-ma-takiego-tematu", 1, 1),
     /Nieznany temat treningu/,
   );
+});
+
+test("każda lekcja ma dedykowany generator i pięć wariantów trudności", () => {
+  const coverage = auditMasterCatalog(lessons);
+  assert.equal(coverage.lessons, 60);
+  assert.equal(coverage.generators, 60);
+  assert.deepEqual(coverage.missing, []);
+  assert.deepEqual(coverage.duplicates, []);
+  assert.deepEqual(coverage.unused, []);
+  assert.doesNotThrow(() => assertMasterCatalog(lessons));
+
+  for (const topic of catalog) {
+    const prompts = new Set<string>();
+    for (let level = 1 as 1 | 2 | 3 | 4 | 5; level <= 5; level++) {
+      const master = generateMasterProblem(topic.id, level, 7);
+      assert.equal(master.topic.id, topic.id);
+      assert.ok(master.problem.prompt.trim().length > 0);
+      assert.ok(master.problem.steps.length > 0);
+      prompts.add(master.problem.prompt);
+    }
+    assert.ok(prompts.size >= 2, `Jeden wariant dla ${topic.id}`);
+  }
+});
+
+test("audyt katalogu wykrywa brak szablonu, duplikat i osierocony generator", () => {
+  const [first, second] = lessons;
+  const duplicate = lessons.map((lesson) =>
+    lesson.id === second.id
+      ? { ...lesson, generatorId: first.generatorId }
+      : lesson,
+  );
+  const gaps = auditMasterCatalog(duplicate);
+  assert.deepEqual(gaps.missing, []);
+  assert.deepEqual(gaps.duplicates, [first.generatorId]);
+  assert.ok(gaps.unused.includes(second.generatorId));
+
+  const unknown = lessons.map((lesson) =>
+    lesson.id === first.id ? { ...lesson, generatorId: "brak-takiego" } : lesson,
+  );
+  const broken = auditMasterCatalog(unknown);
+  assert.deepEqual(broken.missing, [
+    { lessonId: first.id, generatorId: "brak-takiego" },
+  ]);
+  assert.ok(broken.unused.includes(first.generatorId));
+  assert.throws(() => assertMasterCatalog(unknown), /Brak szablonu dla lekcji/);
 });

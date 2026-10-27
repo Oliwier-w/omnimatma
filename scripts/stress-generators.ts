@@ -1,5 +1,7 @@
 import katex from "katex";
 import { GENERATOR_IDS, generateProblem, checkProblemAnswer, checkAnswer, type Problem } from "../src/generators";
+import { assertMasterCatalog, buildMasterCatalog, generateMasterProblem } from "../src/generators/masterGenerator";
+import { getLessons } from "../src/lib/vaultParser";
 import { generateOmniPractice } from "../src/lib/omnikumpelEngine";
 import type { OmniPracticeSpec } from "../src/lib/omnikumpelTypes";
 
@@ -10,6 +12,7 @@ const checks = { total: 0, passed: 0, failed: 0 };
 const failuresByCheck: Record<string, number> = {};
 const counts = {
   generators: { specs: GENERATOR_IDS.length, attempted: 0, generated: 0, passed: 0, failed: 0 },
+  catalog: { specs: 0, attempted: 0, generated: 0, passed: 0, failed: 0 },
   omni: { specs: 0, attempted: 0, generated: 0, passed: 0, failed: 0 },
 };
 
@@ -98,6 +101,39 @@ for (const id of GENERATOR_IDS)
   for (let level = 1; level <= levels; level++)
     for (let seed = 0; seed < seeds; seed++)
       sample("generators", `${id}-${level}-${seed}`, () => generateProblem(id, level, seed));
+
+// KROK 4: every vault lesson must own a dedicated template with all five levels.
+const lessons = getLessons();
+const catalog = buildMasterCatalog(lessons);
+counts.catalog.specs = catalog.length;
+verify("catalog", "coverage", () => {
+  const coverage = assertMasterCatalog(lessons);
+  if (coverage.missing.length || coverage.unused.length || coverage.duplicates.length)
+    throw new Error(JSON.stringify(coverage));
+  if (coverage.lessons !== lessons.length || coverage.generators !== GENERATOR_IDS.length)
+    throw new Error(`Catalogue size mismatch: ${coverage.lessons}/${coverage.generators}`);
+});
+
+for (const topic of catalog) {
+  const prompts = new Set<string>();
+  for (let level = 1; level <= levels; level++) {
+    for (let seed = 0; seed < 2; seed++) {
+      sample("catalog", `${topic.id}-${level}-${seed}`, () => {
+        const master = generateMasterProblem(topic.id, level as 1 | 2 | 3 | 4 | 5, seed);
+        if (master.topic.id !== topic.id)
+          throw new Error(`Topic drift: ${master.topic.id} !== ${topic.id}`);
+        if (!master.problem.steps.length)
+          throw new Error(`No solution steps for ${topic.id}`);
+        if (master.problem.prompt.trim()) prompts.add(master.problem.prompt.trim());
+        return master.problem;
+      });
+    }
+  }
+  verify(topic.id, "catalog:distinct-prompts", () => {
+    if (prompts.size < 2)
+      throw new Error(`Only one prompt variant for ${topic.id}`);
+  });
+}
 
 for (const spec of specs)
   for (let level = 1; level <= levels; level++)

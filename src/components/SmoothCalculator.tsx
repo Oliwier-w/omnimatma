@@ -1111,6 +1111,30 @@ export default function SmoothCalculator({
             12 cyfr
           </span>
         </div>
+        {result !== null && !error && (
+          <div
+            className="sc-history-actions sc-main-actions"
+            role="group"
+            aria-label="Użyj obliczonego wyniku"
+          >
+            <button
+              type="button"
+              onClick={() => insertAnswer(result)}
+              title="Wstaw wynik do aktywnego pola odpowiedzi"
+            >
+              <ArrowUpRight size={13} aria-hidden="true" />
+              ↳ Wstaw do odpowiedzi
+            </button>
+            <button
+              type="button"
+              onClick={() => insertNote(result)}
+              title="Dopisz wynik do brudnopisu"
+            >
+              <NotebookPen size={13} aria-hidden="true" />
+              ↳ Do brudnopisu
+            </button>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

@@ -12,9 +12,12 @@ import {
   BACKUP_VERSION,
   MAX_BACKUP_BYTES,
   backupFileName,
+  encodeSyncLink,
   exportProgressBackup,
   parseProgressBackup,
+  parseSyncLink,
   progressSummary,
+  SYNC_PARAM,
 } from "../src/lib/progressBackup";
 
 const DAY = new Date("2026-10-25T12:00:00Z");
@@ -230,4 +233,20 @@ test("export refuses invalid progress and builds a dated file name", () => {
     backupFileName(new Date(2026, 9, 26, 12, 0, 0)),
     "omnimatma-postepy-2026-10-26.json",
   );
+});
+
+test("sync link round-trips the exact progress and rejects broken payloads", () => {
+  const progress = sampleProgress();
+  const link = encodeSyncLink(progress, "https://omnimatma.example");
+  const url = new URL(link);
+  assert.equal(url.origin, "https://omnimatma.example");
+  assert.equal(url.pathname, "/");
+  assert.ok(url.searchParams.get(SYNC_PARAM)?.length);
+
+  const restored = parseSyncLink(url.searchParams.get(SYNC_PARAM));
+  assert.deepEqual(restored, progress);
+  assert.deepEqual(parseSyncLink(""), null);
+  assert.deepEqual(parseSyncLink(null), null);
+  assert.deepEqual(parseSyncLink("not-json"), null);
+  assert.deepEqual(parseSyncLink("eyJhcHAiOiJvbW5pbWF0bWEifQ"), null);
 });

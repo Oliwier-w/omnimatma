@@ -40,19 +40,16 @@ import {
   streak,
   type Progress,
 } from "@/lib/progress";
+import dynamic from "next/dynamic";
 import MathText, { MathFormula } from "./MathText";
 import InfinitePractice from "./InfinitePractice";
-import Visualizer from "./Visualizer";
 import Tools from "./Tools";
-import SkillTree from "./SkillTree";
-import TasksRoute from "./TasksRoute";
 import { isReviewDue } from "@/lib/review";
 import CommandPalette from "./CommandPalette";
 import ProfileDialog from "./ProfileDialog";
 import BackupDialog from "./BackupDialog";
 import { DashboardCircleDemo, DashboardPerspectives } from "./DashboardDemos";
 import { LessonLinksProvider } from "./WikiLink";
-import CrashCourse from "./CrashCourse";
 import "./WorkspaceQoL.css";
 import "./WorkspaceRefresh.css";
 import { ScratchpadProvider, useScratchpad } from "./ScratchpadContext";
@@ -61,13 +58,23 @@ import SmartMathBar from "./SmartMathBar";
 import type { SmartPracticeSpec } from "@/lib/smartMath";
 import { smartPracticeTopicId } from "@/lib/smartMath";
 import { problemPath } from "@/lib/problemLink";
+import { SYNC_PARAM, parseSyncLink } from "@/lib/progressBackup";
 import SymbolTranslator from "./SymbolTranslator";
 import FormulaXray from "./FormulaXray";
-import OmniKumpel from "./OmniKumpel";
-import OmniKumpelDock from "./OmniKumpelDock";
 import { OmniKumpelProvider, useOmniKumpel, useOmniQuestion } from "./OmniKumpelContext";
 import type { OmniPracticeSpec } from "@/lib/omnikumpelTypes";
 import { omniPracticeTopicId } from "@/lib/omnikumpelEngine";
+
+/**
+ * Heavy route views are split into their own chunks. They keep server rendering
+ * (the default), so the no-JavaScript dashboard still exposes real HTML.
+ */
+const Visualizer = dynamic(() => import("./Visualizer"));
+const SkillTree = dynamic(() => import("./SkillTree"));
+const TasksRoute = dynamic(() => import("./TasksRoute"));
+const CrashCourse = dynamic(() => import("./CrashCourse"));
+const OmniKumpel = dynamic(() => import("./OmniKumpel"));
+const OmniKumpelDock = dynamic(() => import("./OmniKumpelDock"));
 
 type Page = WorkspacePage;
 const tracks = [
@@ -222,18 +229,37 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
   const [toolTab, setToolTab] = useState<"formula" | "matrix" | "graph" | "exam" | "symbols">("formula");
   const [toolRequest, setToolRequest] = useState(0);
   useEffect(() => {
+    let loaded = emptyProgress;
     try {
-      const saved = loadProgress(localStorage.getItem("omnimatma-v1"));
-      setProgress(saved);
-      if (lessons.some((item) => item.id === saved.lastLessonId))
-        setLessonId(saved.lastLessonId!);
+      loaded = loadProgress(localStorage.getItem("omnimatma-v1"));
     } catch {
       setStorageError(true);
     }
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const imported = parseSyncLink(params.get(SYNC_PARAM));
+      if (imported) {
+        loaded = imported;
+        params.delete(SYNC_PARAM);
+        const query = params.toString();
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+        );
+      }
+    } catch {
+      // A malformed sync link never blocks the locally stored progress.
+    }
+    setProgress(loaded);
+    if (lessons.some((item) => item.id === loaded.lastLessonId))
+      setLessonId(loaded.lastLessonId!);
     setReady(true);
   }, [lessons]);
   useEffect(() => {
     if (!ready) return;
+    // Signal used by E2E tests: input sent before this point would beat hydration.
+    document.documentElement.dataset.hydrated = "true";
     document.documentElement.dataset.theme = progress.theme;
     try {
       localStorage.setItem("omnimatma-v1", JSON.stringify(progress));
@@ -531,7 +557,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                         </span>
                         <span className="version-tag">OMNIMATMA / 01</span>
                       </div>
-                      <SmartMathBar onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} />
+                      <SmartMathBar onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} onSolvedExample={(id) => setProgress((previous) => award(previous, "fractions-add", id, 1))} />
                       <section className="hero panel">
                         <div className="hero-copy">
                           <span className="chip hero-chip">

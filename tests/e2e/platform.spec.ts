@@ -103,6 +103,7 @@ test("search, keyboard focus, theme persistence and actual skill edges", async (
   page,
 }) => {
   await page.goto("/");
+  await page.waitForSelector('html[data-hydrated="true"]');
   await page.keyboard.press("Control+k");
   await expect(
     page.getByRole("dialog", { name: "Wyszukaj lekcję" }),
