@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { ArrowUpRight } from "lucide-react";
 import { MathFormula } from "./MathText";
-import "./DashboardDemos.css";
 
 type PerspectiveId = "metafora" | "przepis" | "obraz" | "definicja";
 

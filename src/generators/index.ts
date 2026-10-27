@@ -7,9 +7,25 @@ import { complexProblem } from "./complex";
 import { maturaLiczbyProblem } from "./maturaLiczby";
 import { maturaFunkcjeProblem } from "./maturaFunkcje";
 import { maturaGeometriaProblem } from "./maturaGeometria";
+import { percentProblem, algebraProblem, PERCENT_GENERATOR_IDS, ALGEBRA_GENERATOR_IDS } from "./percentAlgebra";
+import { trigLogSequenceProblem, TRIG_LOG_SEQUENCE_GENERATOR_IDS } from "./trigLogSequences";
+import { statisticsProblem, architectureProblem, STATISTICS_GENERATOR_IDS, ARCHITECTURE_GENERATOR_IDS } from "./statisticsArchitecture";
 import { cleanMathLatex } from "../lib/cleanMathLatex";
 export type { Problem } from "./shared";
 export { checkAnswer, checkSteps } from "../lib/math";
+
+/**
+ * Extension families are deliberately separate from the 60 lesson-backed
+ * generators. They can be used by new lessons or extra practice without
+ * breaking the strict 1:1 catalogue audit.
+ */
+export const EXTENDED_GENERATOR_IDS = [
+  ...PERCENT_GENERATOR_IDS,
+  ...ALGEBRA_GENERATOR_IDS,
+  ...TRIG_LOG_SEQUENCE_GENERATOR_IDS,
+  ...STATISTICS_GENERATOR_IDS,
+  ...ARCHITECTURE_GENERATOR_IDS,
+] as const;
 
 /** One final-answer policy for practice and exams. Scratchpad checkpoints stay numeric. */
 export function checkProblemAnswer(
@@ -94,20 +110,31 @@ export const GENERATOR_IDS = [
   "matura-geometria-statystyka",
   "matura-geometria-optymalizacja",
 ] as const;
+const ALL_GENERATOR_IDS: readonly string[] = [...GENERATOR_IDS, ...EXTENDED_GENERATOR_IDS];
 
 export function generateProblem(
   generatorId: string,
   difficulty: number,
   seed: number = Math.floor(Math.random() * 4294967296),
 ) {
-  if (!(GENERATOR_IDS as readonly string[]).includes(generatorId))
+  if (!ALL_GENERATOR_IDS.includes(generatorId))
     throw new Error(`Nieznany generator: ${generatorId}`);
   if (!Number.isInteger(difficulty) || difficulty < 1 || difficulty > 5)
     throw new Error("Poziom trudności musi być liczbą całkowitą od 1 do 5.");
   if (!Number.isSafeInteger(seed))
     throw new Error("Ziarno musi być bezpieczną liczbą całkowitą.");
   const rng = random(seed);
-  const factory = generatorId.startsWith("fractions-")
+  const factory = EXTENDED_GENERATOR_IDS.includes(generatorId as (typeof EXTENDED_GENERATOR_IDS)[number])
+    ? generatorId === "extra-percent"
+      ? percentProblem
+      : generatorId === "extra-powers" || generatorId === "extra-linear-equations"
+        ? algebraProblem
+        : generatorId === "extra-statistics"
+          ? statisticsProblem
+          : generatorId === "extra-architecture"
+            ? architectureProblem
+            : trigLogSequenceProblem
+    : generatorId.startsWith("fractions-")
     ? fractionProblem
     : generatorId.startsWith("matrix-")
       ? matrixProblem

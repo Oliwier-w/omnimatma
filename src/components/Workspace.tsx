@@ -50,8 +50,6 @@ import ProfileDialog from "./ProfileDialog";
 import BackupDialog from "./BackupDialog";
 import { DashboardCircleDemo, DashboardPerspectives } from "./DashboardDemos";
 import { LessonLinksProvider } from "./WikiLink";
-import "./WorkspaceQoL.css";
-import "./WorkspaceRefresh.css";
 import { ScratchpadProvider, useScratchpad } from "./ScratchpadContext";
 import { WORKSPACE_PATHS, lessonPath, readWorkspacePath, type WorkspacePage } from "@/lib/workspaceRoutes";
 import SmartMathBar from "./SmartMathBar";
@@ -351,6 +349,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
     ?? lessons[0];
   const profileName = progress.displayName || "Odkrywca";
   const profileInitial = progress.initial || "O";
+  const smartMath = <SmartMathBar compact onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} onSolvedExample={(id) => setProgress((previous) => award(previous, "fractions-add", id, 1))} />;
   return (
     <LessonLinksProvider lessons={lessons} onOpen={openLesson}>
       <MotionConfig reducedMotion="user">
@@ -399,6 +398,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                   onNavigate={followLink(WORKSPACE_PATHS[n.page as Exclude<Page, "lesson">])}
                   className={`nav-item ${page === n.page ? "active" : ""}`}
                   aria-current={page === n.page ? "page" : undefined}
+                  onClick={() => setMobile(false)}
                 >
                   <n.icon size={19} />
                   <span>{n.label}</span>
@@ -417,6 +417,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                     key={t.key}
                     href={lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning")}
                     onNavigate={followLink(lessonPath(lessons.find((l) => l.id.startsWith(t.key))?.id ?? "fractions-meaning"))}
+                    onClick={() => setMobile(false)}
                   >
                     <span className={`tiny-dot ${t.color}`} />
                     {t.label}
@@ -424,7 +425,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                   </Link>
                 ))}
               </div>
-              <Link className="track-nav-all" href="/sciezka" onNavigate={followLink("/sciezka")}>
+              <Link className="track-nav-all" href="/sciezka" onNavigate={followLink("/sciezka")} onClick={() => setMobile(false)}>
                 Zobacz wszystkie 60 lekcji <ArrowRight size={14} />
               </Link>
             </nav>
@@ -446,8 +447,15 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                 </span>
               </div>
               <button
+                type="button"
+                className="sidebar-backup"
+                onClick={() => { setMobile(false); setBackupOpen(true); }}
+              >
+                <Archive size={16} /> Kopia zapasowa postępów
+              </button>
+              <button
                 className="profile-button"
-                onClick={() => setSettings(true)}
+                onClick={() => { setMobile(false); setSettings(true); }}
               >
                 <span className="avatar">{profileInitial}</span>
                 <span>
@@ -553,42 +561,53 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                 >
                   {page === "home" && (
                     <>
-                      <section className="panel zen-welcome">
-                      <div className="welcome-line">
-                        <span>
-                          <span className="status-dot" /> TWOJE MIEJSCE NA
-                          WIELKIE „AHA!”
-                        </span>
-                        <span className="version-tag">OMNIMATMA / 01</span>
-                      </div>
-                      <div className="hero">
-                        <div className="hero-copy">
-                          <span className="chip hero-chip">
-                            <Sparkles size={13} /> {progress.xp > 0 ? "DOBRZE CIĘ ZNOWU WIDZIEĆ" : "MAŁY KROK. WIELKIE AHA."}
-                          </span>
-                          <h1>
-                            Matematyka.
-                            <br />
-                            <span>W końcu po Twojemu.</span>
-                          </h1>
-                          <div className="hero-resume">
-                            {progress.xp > 0 ? <p title={resumeLesson?.title}>Wróć do nauki: <strong>{resumeLesson?.title}</strong></p> : <p>Nie musisz mieć „ścisłego umysłu”. Wystarczy ciekawość.</p>}
+                      <section className={`panel zen-welcome${progress.xp > 0 ? " zen-return" : ""}`}>
+                      {progress.xp > 0 ? (
+                        <div className="return-strip">
+                          <div className="return-copy">
+                            <span className="eyebrow">WRÓĆ DO OSTATNIEJ LEKCJI</span>
+                            <h1 title={resumeLesson?.title}>{resumeLesson?.title ?? "Twoja pierwsza lekcja"}</h1>
+                            <button className="button primary" onClick={() => openLesson(resumeLesson)}>
+                              Kontynuuj <ArrowRight size={16} />
+                            </button>
                           </div>
-                          <button
-                            className="button primary"
-                            onClick={() => openLesson(resumeLesson)}
-                          >
-                            {progress.xp > 0 ? "Kontynuuj lekcję" : "Zacznij odkrywać"}
-                            <ArrowRight size={17} />
-                          </button>
-                          <div className="hero-footnote">
-                            <span className="tiny-dot mint" /> Bez opłat. Bez
-                            limitów. Od absolutnego zera.
-                          </div>
+                          <div className="return-math">{smartMath}</div>
                         </div>
-                        <OrbitalArt />
-                      </div>
-                      <SmartMathBar compact onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} onSolvedExample={(id) => setProgress((previous) => award(previous, "fractions-add", id, 1))} />
+                      ) : (
+                        <>
+                          <div className="welcome-line">
+                            <span>
+                              <span className="status-dot" /> TWOJE MIEJSCE NA
+                              WIELKIE „AHA!”
+                            </span>
+                            <span className="version-tag">OMNIMATMA / 01</span>
+                          </div>
+                          <div className="hero">
+                            <div className="hero-copy">
+                              <span className="chip hero-chip">
+                                <Sparkles size={13} /> MAŁY KROK. WIELKIE AHA.
+                              </span>
+                              <h1>
+                                Matematyka.
+                                <br />
+                                <span>W końcu po Twojemu.</span>
+                              </h1>
+                              <div className="hero-resume">
+                                <p>Nie musisz mieć „ścisłego umysłu”. Wystarczy ciekawość.</p>
+                              </div>
+                              <button className="button primary" onClick={() => openLesson(resumeLesson)}>
+                                Zacznij odkrywać <ArrowRight size={17} />
+                              </button>
+                              <div className="hero-footnote">
+                                <span className="tiny-dot mint" /> Bez opłat. Bez
+                                limitów. Od absolutnego zera.
+                              </div>
+                            </div>
+                            <OrbitalArt />
+                          </div>
+                          {smartMath}
+                        </>
+                      )}
                       </section>
                       <div className="stats-grid">
                         <div className="stat">
@@ -683,11 +702,11 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                             (l) => (progress.solved[l.id] ?? 0) >= 5,
                           ).length;
                           return (
-                            <motion.button
-                              whileHover={{ y: -5 }}
+                            <Link
                               key={t.key}
                               className={`track-card ${t.color}`}
-                              onClick={() => openLesson(group[0])}
+                              href={lessonPath(group[0]?.id ?? "fractions-meaning")}
+                              onNavigate={followLink(lessonPath(group[0]?.id ?? "fractions-meaning"))}
                             >
                               <div className="track-card-top">
                                 <span className="track-icon">
@@ -718,10 +737,15 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                                   <ArrowUpRight size={18} />
                                 </span>
                               </div>
-                            </motion.button>
+                            </Link>
                           );
                         })}
                       </div>
+                      <nav className="quick-links" aria-label="Szybkie skróty">
+                        <Link className="quick-link" href="/sprawdzian" onNavigate={followLink("/sprawdzian")}>⚡ Sprawdzian jutro</Link>
+                        <Link className="quick-link" href="/laboratorium" onNavigate={followLink("/laboratorium")}>🧪 Laboratorium</Link>
+                        <Link className="quick-link" href="/omnikumpel" onNavigate={followLink("/omnikumpel")}>🤖 OmniKumpel AI</Link>
+                      </nav>
                       <button className="text-button" aria-expanded={showDemos} aria-controls="dashboard-demos" onClick={() => setShowDemos((value) => !value)}>Pokaż jak działają 4 perspektywy i interaktywne wzory</button>
                       {showDemos && <div className="bottom-bento" id="dashboard-demos">
                         <DashboardPerspectives />
@@ -1043,6 +1067,10 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                 <span>{item.label}</span>
               </Link>
             ))}
+            <button type="button" className="mobile-more" aria-label="Więcej — wszystkie zakładki" aria-expanded={mobile} onClick={() => setMobile(true)}>
+              <Menu size={19} aria-hidden="true" />
+              <span>Więcej</span>
+            </button>
           </nav>
           {(helperOpen || ["lesson", "tasks"].includes(page)) && <OmniKumpelDock showTrigger={["lesson", "tasks"].includes(page)} onPractice={startOmniPractice} />}
           {searchOpen && (
