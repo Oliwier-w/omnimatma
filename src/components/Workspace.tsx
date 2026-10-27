@@ -208,7 +208,10 @@ export default function Workspace({ lessons, children }: { lessons: Lesson[]; ch
 function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?: ReactNode }) {
   const { open: scratchOpen, setOpen: setScratchOpen, size: scratchSize } =
     useScratchpad();
-  const { question: omniQuestion, setHelperOpen } = useOmniKumpel();
+  const { question: omniQuestion, helperOpen, setHelperOpen } = useOmniKumpel();
+  const [showDemos, setShowDemos] = useState(false);
+  useEffect(() => { if (scratchOpen) setHelperOpen(false); }, [scratchOpen, setHelperOpen]);
+  useEffect(() => { if (helperOpen) setScratchOpen(false); }, [helperOpen, setScratchOpen]);
   const { notes: scratchpadNotes } = useScratchpad();
   const pathname = usePathname();
   const router = useRouter();
@@ -550,6 +553,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                 >
                   {page === "home" && (
                     <>
+                      <section className="panel zen-welcome">
                       <div className="welcome-line">
                         <span>
                           <span className="status-dot" /> TWOJE MIEJSCE NA
@@ -557,8 +561,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                         </span>
                         <span className="version-tag">OMNIMATMA / 01</span>
                       </div>
-                      <SmartMathBar onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} onSolvedExample={(id) => setProgress((previous) => award(previous, "fractions-add", id, 1))} />
-                      <section className="hero panel">
+                      <div className="hero">
                         <div className="hero-copy">
                           <span className="chip hero-chip">
                             <Sparkles size={13} /> {progress.xp > 0 ? "DOBRZE CIĘ ZNOWU WIDZIEĆ" : "MAŁY KROK. WIELKIE AHA."}
@@ -583,7 +586,8 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                             limitów. Od absolutnego zera.
                           </div>
                         </div>
-                        <OrbitalArt />
+                      </div>
+                      <SmartMathBar compact onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} onSolvedExample={(id) => setProgress((previous) => award(previous, "fractions-add", id, 1))} />
                       </section>
                       <div className="stats-grid">
                         <div className="stat">
@@ -717,15 +721,11 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                           );
                         })}
                       </div>
-                      <div className="bottom-bento">
+                      <button className="text-button" aria-expanded={showDemos} aria-controls="dashboard-demos" onClick={() => setShowDemos((value) => !value)}>Pokaż jak działają 4 perspektywy i interaktywne wzory</button>
+                      {showDemos && <div className="bottom-bento" id="dashboard-demos">
                         <DashboardPerspectives />
                         <DashboardCircleDemo onOpenTools={() => { setToolTab("graph"); setToolRequest((n) => n + 1); jump("tools"); }} />
-                      </div>
-                      <section className="panel crash-entry">
-                        <div className="crash-entry-icon"><Zap size={24} /></div>
-                        <div><span className="eyebrow">MNIEJ PANIKI. WIĘCEJ KONKRETÓW.</span><h2>Kolokwium / Sprawdzian jutro</h2><p>Wzory, pułapki i szybki test z wybranych działów — w jednym miejscu.</p><Link className="text-button crash-rescue-link" href="/sprawdzian">Uruchom tryb ratunkowy →</Link></div>
-                        <button className="button primary" onClick={() => jump("crash")}>Ułóż szybką powtórkę <ArrowRight size={16} /></button>
-                      </section>
+                      </div>}
                       <footer className="page-footer">
                         <span>
                           <InfinityIcon size={17} /> Matematyka jest dla
@@ -1043,7 +1043,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
               </Link>
             ))}
           </nav>
-          <OmniKumpelDock showTrigger={["lesson", "tasks"].includes(page)} onPractice={startOmniPractice} />
+          {(helperOpen || ["lesson", "tasks"].includes(page)) && <OmniKumpelDock showTrigger={["lesson", "tasks"].includes(page)} onPractice={startOmniPractice} />}
           {searchOpen && (
             <CommandPalette lessons={lessons} initialQuery={searchQuery} onLesson={openLesson} onSmartPractice={startSmartPractice}
               onPractice={(item) => { setProgress((p) => ({ ...p, lastLessonId: item.id })); navigate(problemPath({ topicId: item.id, difficulty: 1, seed: Math.floor(Math.random() * 4294967296) })); }}

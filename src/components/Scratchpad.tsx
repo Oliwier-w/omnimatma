@@ -38,15 +38,7 @@ const SmoothCalculator = dynamic(() => import("./SmoothCalculator"));
 
 export type ScratchpadSize = "half" | "wide" | "full";
 
-export default function Scratchpad({
-  open,
-  onClose,
-  answer,
-  size,
-  onSizeChange,
-  notes,
-  onNotesChange: setNotes,
-}: {
+type ScratchpadProps = {
   open: boolean;
   onClose: () => void;
   answer?: string;
@@ -54,13 +46,34 @@ export default function Scratchpad({
   onSizeChange: (size: ScratchpadSize) => void;
   notes: string;
   onNotesChange: Dispatch<SetStateAction<string>>;
+};
+
+// Keep only the user's ink alive; closed editors have no effects or children.
+export default function Scratchpad(props: ScratchpadProps) {
+  const [strokes, setStrokes] = useState<ScratchStroke[]>([]);
+  const [textBlocks, setTextBlocks] = useState<ScratchText[]>([]);
+  return props.open ? <ScratchpadEditor {...props} strokes={strokes} setStrokes={setStrokes} textBlocks={textBlocks} setTextBlocks={setTextBlocks} /> : null;
+}
+
+function ScratchpadEditor({
+  open,
+  onClose,
+  answer,
+  size,
+  onSizeChange,
+  notes,
+  onNotesChange: setNotes,
+  strokes, setStrokes, textBlocks, setTextBlocks,
+}: ScratchpadProps & {
+  strokes: ScratchStroke[];
+  setStrokes: Dispatch<SetStateAction<ScratchStroke[]>>;
+  textBlocks: ScratchText[];
+  setTextBlocks: Dispatch<SetStateAction<ScratchText[]>>;
 }) {
   const id = useId();
   const reducedMotion = useReducedMotion();
   const [mode, setMode] = useState<"notes" | "draw" | "calc">("notes");
   const { openHelper, setQuestion } = useOmniKumpel();
-  const [strokes, setStrokes] = useState<ScratchStroke[]>([]);
-  const [textBlocks, setTextBlocks] = useState<ScratchText[]>([]);
   const [notice, setNotice] = useState("");
   const [compact, setCompact] = useState(false);
   const [checked, setChecked] = useState<{
@@ -68,6 +81,10 @@ export default function Scratchpad({
     answer: string;
     results: ReturnType<typeof checkSteps>;
   } | null>(null);
+  const validationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (validationTimer.current) clearTimeout(validationTimer.current);
+  }, [notes, answer]);
   const panel = useRef<HTMLElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
   const close = useRef(onClose);
@@ -351,11 +368,12 @@ export default function Scratchpad({
                     .split("\n")
                     .map((line) => line.trim())
                     .filter(Boolean);
-                  setChecked({
+                  if (validationTimer.current) clearTimeout(validationTimer.current);
+                  validationTimer.current = setTimeout(() => setChecked({
                     notes,
                     answer,
                     results: checkSteps(lines.slice(0, 100), answer),
-                  });
+                  }), 150);
                 }}
               >
                 Porównaj kroki <ChevronRight size={15} aria-hidden="true" />

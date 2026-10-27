@@ -610,8 +610,6 @@ export default function ScratchpadCanvas({
       return;
     strokesRef.current = nextStrokes;
     textRef.current = nextTexts;
-    onStrokesChange(nextStrokes);
-    onTextBlocksChange(nextTexts);
     requestDraw();
   }
 
@@ -626,7 +624,7 @@ export default function ScratchpadCanvas({
         y: active.startView.y + event.clientY - active.startClient.y,
       };
       viewRef.current = next;
-      setView(next);
+      requestDraw();
       return;
     }
     const point = viewPoint(event);
@@ -668,7 +666,11 @@ export default function ScratchpadCanvas({
         commit(next, textRef.current);
       }
     } else if (active.kind === "erase") {
+      onStrokesChange(strokesRef.current);
+      onTextBlocksChange(textRef.current);
       onNotice("Gumka usunęła fragment rysunku. Cofnij, jeśli to pomyłka.");
+    } else if (active.kind === "pan") {
+      setView(viewRef.current);
     }
     activeRef.current = null;
     draftRef.current = null;
@@ -679,6 +681,11 @@ export default function ScratchpadCanvas({
 
   function cancel(event: ReactPointerEvent<HTMLCanvasElement>) {
     if (activeRef.current?.pointer !== event.pointerId) return;
+    if (activeRef.current.kind === "erase") {
+      onStrokesChange(strokesRef.current);
+      onTextBlocksChange(textRef.current);
+    }
+    if (activeRef.current.kind === "pan") setView(viewRef.current);
     if (event.currentTarget.hasPointerCapture(event.pointerId))
       event.currentTarget.releasePointerCapture(event.pointerId);
     activeRef.current = null;

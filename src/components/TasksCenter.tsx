@@ -143,6 +143,7 @@ export default function TasksCenter({
   initialProblem?: ProblemLink;
 }) {
   const catalog = useMemo(() => buildMasterCatalog(lessons), [lessons]);
+  const [moreOpen, setMoreOpen] = useState(false);
   const requestedTopic = initialProblem?.topicId ?? initialTopicId;
   const initialTopic = catalog.find((topic) => topic.lessonId === requestedTopic) ?? catalog[0];
   const [round, setRound] = useState<Round | null>(() =>
@@ -381,7 +382,17 @@ export default function TasksCenter({
       window.removeEventListener("omnimatma:insert-answer", onInsert);
   }, []);
 
+  const validationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (validationTimer.current) clearTimeout(validationTimer.current);
+  }, [input, round]);
+
   function submit() {
+    if (validationTimer.current) clearTimeout(validationTimer.current);
+    validationTimer.current = setTimeout(validateSubmission, 150);
+  }
+
+  function validateSubmission() {
     if (!round || answered) return;
     const checked = checkProblemAnswer(round.problem, input);
     setResult(checked);
@@ -448,7 +459,7 @@ export default function TasksCenter({
 
   return (
     <div className="tasks-center">
-      <section className="panel tasks-hero">
+      {moreOpen && <section className="panel tasks-hero">
         <div className="tasks-hero-copy">
           <span className="eyebrow">NIESKOŃCZONY TRENING · BEZ LIMITÓW</span>
           <h1>Trenuj tak długo, jak chcesz.</h1>
@@ -481,7 +492,7 @@ export default function TasksCenter({
             {catalog.length} mikro-tematów · {categories.length} działów
           </small>
         </div>
-      </section>
+      </section>}
 
       <section className="panel tasks-filters" aria-label="Filtry treningu">
         <div className="tasks-filter-group">
@@ -556,7 +567,8 @@ export default function TasksCenter({
           </div>
         </div>
 
-        <div className="tasks-filter-group tasks-filter-mode">
+        <button type="button" className="text-button" aria-expanded={moreOpen} onClick={() => setMoreOpen((value) => !value)}>Więcej opcji / Pomoc</button>
+        {moreOpen && <div className="tasks-filter-group tasks-filter-mode">
           <span>Tryb</span>
           <div className="tasks-segments">
             {MODE_OPTIONS.map((option) => (
@@ -570,7 +582,7 @@ export default function TasksCenter({
               </button>
             ))}
           </div>
-        </div>
+        </div>}
 
         <div className="tasks-filter-summary">
           <span>{topicCountLabel(pool.length)} w puli</span>
@@ -727,7 +739,7 @@ export default function TasksCenter({
                 )}
               </AnimatePresence>
 
-              {result && !result.correct && topicLesson && (
+              {moreOpen && result && !result.correct && topicLesson && (
                 <section
                   className="tasks-formula-hint"
                   aria-label="Wzór potrzebny w tym zadaniu"
@@ -744,7 +756,7 @@ export default function TasksCenter({
                 </section>
               )}
 
-              <div className="tasks-actions">
+              {moreOpen && <><div className="tasks-actions">
                 <div className="tasks-hint-buttons">
                   {round.problem.hints.slice(0, 3).map((_, index) => (
                     <button
@@ -862,6 +874,7 @@ export default function TasksCenter({
                 </div>
               </details>
               <SymbolTranslator compact />
+              </>}
             </motion.div>
           ) : (
             <div className="tasks-empty">
@@ -881,7 +894,7 @@ export default function TasksCenter({
           )}
         </section>
 
-        <aside className="tasks-side">
+        {moreOpen && <aside className="tasks-side">
           <section className="panel tasks-side-card">
             <span className="eyebrow">TWOJA SESJA</span>
             <h3>{seriesTarget ? `${seriesDone} / ${seriesTarget}` : "Bez limitu"}</h3>
@@ -960,7 +973,7 @@ export default function TasksCenter({
               blokad i reklam.
             </p>
           </section>
-        </aside>
+        </aside>}
       </div>
     </div>
   );
