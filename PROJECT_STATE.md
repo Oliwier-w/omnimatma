@@ -24,6 +24,7 @@
 ---
 
 ## QoL: PRZESTRZEŃ DO MYŚLENIA I SZYBKIE POWTÓRKI
+- [x] Na prośbę użytkownika przywrócono dekorację `OrbitalArt` (kula, orbity i wzory) w nagłówku dashboardu; pozostałe uproszczenia UI Zen zachowane.
 - [x] **UI Zen / dieta wydajności (2026-10-27):** wspólna karta powitania i Smart Math, dema montowane dopiero na żądanie; zadania z kompaktowymi filtrami i menu „Więcej opcji / Pomoc”. Wzajemne zamykanie paneli pomocy i brudnopisu; edytor odmontowywany z zachowaniem rysunków. Canvas używa RAF i referencji również dla gumki/panoramowania, publikując stan po geście. Zachowano istniejące `memo` dla KaTeX/MathText i debounce Smart Math; walidacja odpowiedzi/notatek odroczona 150 ms. Usunięto blur w globalnych nakładkach i podwójną animację wejścia; reguły zwężania brudnopisu scalono w WorkspaceQoL. Weryfikacja: `check` 302/302, `build` 73 strony, smoke przeglądarkowy przełączania dem/opcji/paneli OK. Cel 120 FPS wymaga pomiaru na urządzeniu, nie jest gwarancją.
 - [x] **Audyt v2 · architektura, higiena i Unified Math Context Loop (2026-10-27):**
   - **App Router:** `<main id="main" tabIndex={-1}>` i skip-link bez zmian; `TasksCenter`, `TasksRoute`, `OmniKumpel`, `CrashCourse`, `Visualizer`, `SkillTree`, `Scratchpad` i `SmoothCalculator` ładowane przez `next/dynamic` z zachowanym SSR (na `/sciezka` nadal 60 węzłów grafu w HTML). Unikalne metadane dla `/zadania`, `/sciezka`, `/laboratorium`, `/powtorki`, `/sprawdzian`; `generateMetadata` dla lekcji. Nowe `error.tsx` (reset bez czyszczenia `localStorage`) i `not-found.tsx`.

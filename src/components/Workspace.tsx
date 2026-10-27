@@ -586,6 +586,7 @@ function WorkspaceContent({ lessons, children }: { lessons: Lesson[]; children?:
                             limitów. Od absolutnego zera.
                           </div>
                         </div>
+                        <OrbitalArt />
                       </div>
                       <SmartMathBar compact onPractice={startSmartPractice} onSearch={(query) => { setSearchQuery(query); setSearchOpen(true); }} onSolvedExample={(id) => setProgress((previous) => award(previous, "fractions-add", id, 1))} />
                       </section>

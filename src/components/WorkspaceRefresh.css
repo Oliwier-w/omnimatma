@@ -1,5 +1,5 @@
 .topbar { gap: 20px; }
-.zen-welcome .hero { min-height: 0; margin: 0; padding: 0; background: none; border: 0; box-shadow: none; display: block; }
+.zen-welcome .hero { min-height: 260px; margin: 0; padding: 0; background: none; border: 0; box-shadow: none; display: flex; align-items: center; }
 .zen-welcome .hero-copy { padding: 8px 0 18px; }
 .zen-welcome .hero-copy h1 { font-size: clamp(24px, 3vw, 34px); margin: 10px 0; }
 .zen-welcome .hero-copy h1 br, .zen-welcome .hero-footnote, .zen-welcome .hero-chip { display: none; }
