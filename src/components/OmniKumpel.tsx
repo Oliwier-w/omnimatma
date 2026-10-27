@@ -26,6 +26,8 @@ const MODES = [
   { id: "tutor", label: "Naprowadź mnie (Korepetytor)", icon: Lightbulb },
   { id: "check", label: "Sprawdź moje rozwiązanie", icon: CheckCheck },
 ] as const;
+const OMNI_INPUT_MAX = 1500;
+const OMNI_INPUT_WARN = 1200;
 const TEMPLATES = [
   ["Równanie liniowe", "2*x+3=11"], ["Równanie kwadratowe", "x^2-5*x+6=0"],
   ["Macierz odwrotna", "inv([1,2;3,4])"], ["Statystyka", "stats([1,2,3,4])"],
@@ -232,7 +234,7 @@ export default function OmniKumpel({ context, scratchpadNotes = "", compact = fa
         <form onSubmit={e => { e.preventDefault(); if (mode === "check") check(); else solve(); }}>
           <label htmlFor={`${uid}-input`}>Co dziś rozgryzamy?</label>
           <textarea id={`${uid}-input`} aria-label="Treść zadania dla OmniKumpla" value={input} maxLength={1500} rows={4} placeholder="Np. x^2-5*x+6=0" onChange={e => changeInput(e.target.value)} />
-          <div className="ok-input-meta"><span>Zapisz działania za pomocą +, −, *, /.</span><span>{input.length}/1500</span></div>
+          <div className="ok-input-meta"><span>Zapisz działania za pomocą +, −, *, /.</span><span className={`ok-char-count${input.length >= OMNI_INPUT_WARN ? " is-near" : ""}`}>Liczba znaków: {input.length} / {OMNI_INPUT_MAX}</span></div>
           <details className="ok-small"><summary>Obsługiwany zapis i granice</summary><p>Ułamki a/b; równania liniowe i kwadratowe (pierwiastki rzeczywiste); macierze 2×2; zespolone; derivative(x^3-2*x,x); stats([1,2,3,4]) lub mean, median, variance, std. Wariancja populacyjna. Do 50 obserwacji i potęg 8. Liczby dziesiętne zapisz jako ułamek. Nie rozwiązuję dowolnych zadań tekstowych ani dowodów.</p></details>
           <div className="ok-templates" aria-label="Przykładowe zadania">{TEMPLATES.map(([label, value]) => <button key={value} type="button" onClick={() => changeInput(value)}>{label}</button>)}
             <button type="button" onClick={() => { changeMode("tutor"); if (!input.trim()) changeInput("3/4+1/2"); }}>Wytłumacz jak dla 5-latka</button>
